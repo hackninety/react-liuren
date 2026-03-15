@@ -5,10 +5,11 @@ import { TianDiPan } from '@/components/TianDiPan';
 import { SiKePanel } from '@/components/SiKePanel';
 import { SanChuanPanel } from '@/components/SanChuanPanel';
 import { BasicInfoPanel } from '@/components/BasicInfoPanel';
-import { DunGanPanel } from '@/components/DunGanPanel';
+import { JianChuPanel } from '@/components/JianChuPanel';
 import { ShenShaPanel } from '@/components/ShenShaPanel';
 import { JinKouJuePanel } from '@/components/JinKouJuePanel';
 import { LiuNianPanel } from '@/components/LiuNianPanel';
+import { YinYangGuiRenPanel } from '@/components/YinYangGuiRenPanel';
 import { JsonExportPanel } from '@/components/JsonExportPanel';
 import { DatePickerDialog, type LiuRenOptions } from '@/components/DatePickerDialog';
 import {
@@ -267,8 +268,8 @@ function App() {
                 </motion.div>
               )}
 
-              {/* 遁干 */}
-              {liuRenData?.dunGan && (
+              {/* 建除 + 遁干/初建/伏建 */}
+              {(liuRenData?.dunGan || liuRenData?.chuJian || liuRenData?.fuJian || liuRenData?.jianChu) && (
                 <motion.div
                   className="glass-card rounded-xl p-4"
                   initial={{ opacity: 0, y: 20 }}
@@ -277,9 +278,30 @@ function App() {
                 >
                   <h2 className="text-sm font-semibold text-[var(--color-gold)] uppercase tracking-wider mb-3 flex items-center gap-2">
                     <div className="w-1 h-4 rounded-full bg-[var(--color-gold)]" />
-                    遁干
+                    建除 · 遁干
                   </h2>
-                  <DunGanPanel dunGan={liuRenData.dunGan} />
+                  <JianChuPanel
+                    dunGan={liuRenData.dunGan}
+                    chuJian={liuRenData.chuJian}
+                    fuJian={liuRenData.fuJian}
+                    jianChu={liuRenData.jianChu}
+                  />
+                </motion.div>
+              )}
+
+              {/* 阴阳贵人 */}
+              {liuRenData?.yinYangGuiRen && (
+                <motion.div
+                  className="glass-card rounded-xl p-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.28 }}
+                >
+                  <h2 className="text-sm font-semibold text-[var(--color-gold)] uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <div className="w-1 h-4 rounded-full bg-[var(--color-gold)]" />
+                    阴阳贵人
+                  </h2>
+                  <YinYangGuiRenPanel yinYangGuiRen={liuRenData.yinYangGuiRen} />
                 </motion.div>
               )}
 

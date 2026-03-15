@@ -8,7 +8,10 @@ interface SanChuanPanelProps {
 
 /**
  * 三传展示面板
- * 初传 → 中传 → 末传，水平排列 + 课体
+ *
+ * 实际数据格式：
+ *   sanChuan["初传"] = ["辰", "六合", "兄弟", "壬"]  → [地支, 天将, 六亲, 遁干]
+ *   sanChuan["课体"] = "重审"
  */
 export function SanChuanPanel({ sanChuan }: SanChuanPanelProps) {
   if (!sanChuan) return null;
@@ -33,41 +36,62 @@ export function SanChuanPanel({ sanChuan }: SanChuanPanelProps) {
 
       {/* 三传 */}
       <div className="grid grid-cols-3 gap-3">
-        {chuanList.map((chuan, index) => (
-          <motion.div
-            key={chuan.name}
-            className={cn(
-              'glass-card rounded-lg p-4 flex flex-col items-center gap-3',
-              'bg-gradient-to-b', chuan.color, 'to-transparent',
-            )}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.08 }}
-          >
-            <span className="text-xs text-[var(--color-gold)] font-semibold tracking-wider uppercase">
-              {chuan.name}
-            </span>
-            <div className="flex flex-col items-center gap-1">
-              {chuan.data.map((item: string, i: number) => (
-                <span
-                  key={i}
-                  className={cn(
-                    'text-lg font-bold font-serif',
-                    getWuxingColorClass(item),
-                  )}
-                >
-                  {item}
+        {chuanList.map((chuan, index) => {
+          // [地支, 天将, 六亲, 遁干]
+          const [dizhi, tianJiang, liuQin, dunGan] = chuan.data;
+
+          return (
+            <motion.div
+              key={chuan.name}
+              className={cn(
+                'relative glass-card rounded-lg p-4 flex flex-col items-center gap-2',
+                'bg-gradient-to-b', chuan.color, 'to-transparent',
+              )}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.08 }}
+            >
+              <span className="text-xs text-[var(--color-gold)] font-semibold tracking-wider uppercase">
+                {chuan.name}
+              </span>
+
+              {/* 地支 — 大字 */}
+              <span className={cn(
+                'text-2xl font-bold font-serif',
+                getWuxingColorClass(dizhi || ''),
+              )}>
+                {dizhi || '—'}
+              </span>
+
+              {/* 天将 */}
+              {tianJiang && (
+                <span className={cn(
+                  'text-sm font-medium font-serif',
+                  getWuxingColorClass(tianJiang),
+                )}>
+                  {tianJiang}
                 </span>
-              ))}
-            </div>
-            {/* 箭头连接 */}
-            {index < 2 && (
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 text-muted-foreground/30 text-lg z-20 hidden sm:block">
-                →
+              )}
+
+              {/* 六亲 + 遁干 */}
+              <div className="flex items-center gap-2 text-xs">
+                {liuQin && (
+                  <span className="px-1.5 py-0.5 rounded bg-secondary/50 text-muted-foreground">
+                    {liuQin}
+                  </span>
+                )}
+                {dunGan && (
+                  <span className={cn(
+                    'font-serif font-semibold',
+                    getWuxingColorClass(dunGan),
+                  )}>
+                    {dunGan}
+                  </span>
+                )}
               </div>
-            )}
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );

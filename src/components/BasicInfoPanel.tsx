@@ -9,14 +9,38 @@ interface BasicInfoPanelProps {
 
 /**
  * 基础信息面板
- * 展示日期、八字、月将、旬空等
+ * 对齐 DateInfo 接口：
+ *   bazi: string (空格分隔)
+ *   date: string
+ *   kong: string[]
+ *   yima: string
+ *   yuejiang: string
+ *   xun: string
+ *   dingma: string
+ *   tianma: string
  */
 export function BasicInfoPanel({ liuRenData, trueSolarInfo, originalDate }: BasicInfoPanelProps) {
   if (!liuRenData?.dateInfo) return null;
 
   const { dateInfo } = liuRenData;
-  const bazi = dateInfo.bazi || [];
-  const yueJiang = dateInfo.yueJiang || '';
+
+  // bazi 是空格分隔字符串："丙午 辛卯 戊子 辛酉"
+  const baziArr = (dateInfo.bazi || '').split(' ');
+  const pillars = [
+    { label: '年柱', value: baziArr[0] || '' },
+    { label: '月柱', value: baziArr[1] || '' },
+    { label: '日柱', value: baziArr[2] || '' },
+    { label: '时柱', value: baziArr[3] || '' },
+  ];
+
+  // 额外信息标签
+  const infoTags: { label: string; value: string }[] = [];
+  if (dateInfo.yuejiang) infoTags.push({ label: '月将', value: dateInfo.yuejiang });
+  if (dateInfo.kong && dateInfo.kong.length > 0) infoTags.push({ label: '旬空', value: dateInfo.kong.join(' ') });
+  if (dateInfo.xun) infoTags.push({ label: '旬首', value: dateInfo.xun });
+  if (dateInfo.yima) infoTags.push({ label: '驿马', value: dateInfo.yima });
+  if (dateInfo.dingma) infoTags.push({ label: '丁马', value: dateInfo.dingma });
+  if (dateInfo.tianma) infoTags.push({ label: '天马', value: dateInfo.tianma });
 
   const displayDate = originalDate || new Date();
   const dateStr = displayDate.toLocaleDateString('zh-CN', {
@@ -30,14 +54,6 @@ export function BasicInfoPanel({ liuRenData, trueSolarInfo, originalDate }: Basi
     minute: '2-digit',
   });
 
-  // 八字四柱
-  const pillars = [
-    { label: '年柱', value: bazi[0] || '' },
-    { label: '月柱', value: bazi[1] || '' },
-    { label: '日柱', value: bazi[2] || '' },
-    { label: '时柱', value: bazi[3] || '' },
-  ];
-
   return (
     <div className="space-y-4">
       {/* 日期和时间 */}
@@ -46,10 +62,10 @@ export function BasicInfoPanel({ liuRenData, trueSolarInfo, originalDate }: Basi
           <span className="text-xs text-muted-foreground">公历日期</span>
           <p className="text-sm font-medium">{dateStr} {timeStr}</p>
         </div>
-        {yueJiang && (
+        {dateInfo.date && (
           <div>
-            <span className="text-xs text-muted-foreground">月将</span>
-            <p className="text-sm font-medium text-[var(--color-gold)]">{yueJiang}</p>
+            <span className="text-xs text-muted-foreground">干支历</span>
+            <p className="text-sm font-medium">{dateInfo.date}</p>
           </div>
         )}
         {trueSolarInfo && (
@@ -80,18 +96,17 @@ export function BasicInfoPanel({ liuRenData, trueSolarInfo, originalDate }: Basi
         ))}
       </div>
 
-      {/* 额外信息 */}
-      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-        {dateInfo.xunKong && (
-          <span className="px-2 py-0.5 rounded bg-secondary/30">
-            旬空：{dateInfo.xunKong}
+      {/* 月将/旬空/驿马/旬首/丁马/天马 */}
+      <div className="flex flex-wrap gap-2">
+        {infoTags.map((tag) => (
+          <span
+            key={tag.label}
+            className="px-2 py-1 rounded-lg bg-secondary/40 text-xs flex items-center gap-1.5"
+          >
+            <span className="text-muted-foreground">{tag.label}</span>
+            <span className="font-semibold font-serif text-[var(--color-gold)]">{tag.value}</span>
           </span>
-        )}
-        {dateInfo.jieQi && (
-          <span className="px-2 py-0.5 rounded bg-secondary/30">
-            节气：{dateInfo.jieQi}
-          </span>
-        )}
+        ))}
       </div>
     </div>
   );

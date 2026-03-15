@@ -9,13 +9,18 @@ interface SiKePanelProps {
 
 /**
  * 四课独立展示面板
- * 水平排列四课，每课显示上神/下神
+ *
+ * 实际数据格式：
+ *   siKe["一课"] = ["未戊", "贵人"]   → [上神+关系, 天将]
+ *   dateInfo.bazi = "丙午 辛卯 戊子 辛酉"
  */
 export function SiKePanel({ siKe, dateInfo }: SiKePanelProps) {
   if (!siKe) return null;
 
-  const riGan = dateInfo?.bazi?.[2]?.[0] || '';
-  const riZhi = dateInfo?.bazi?.[2]?.[1] || '';
+  const baziArr = (dateInfo?.bazi || '').split(' ');
+  const riZhu = baziArr[2] || '';
+  const riGan = riZhu.charAt(0);
+  const riZhi = riZhu.charAt(1);
 
   const keList = [
     { name: '一课', desc: `${riGan}上`, data: siKe['一课'] || [] },
@@ -38,18 +43,18 @@ export function SiKePanel({ siKe, dateInfo }: SiKePanelProps) {
             {ke.name}
           </span>
           <div className="flex flex-col items-center gap-1">
-            {/* 上神 */}
+            {/* 上神+关系（如 "未戊"） */}
             <span className={cn(
               'text-xl font-bold font-serif',
-              getWuxingColorClass(ke.data[0] || ''),
+              getWuxingColorClass(ke.data[0]?.charAt(0) || ''),
             )}>
               {ke.data[0] || '—'}
             </span>
             {/* 分割线 */}
             <div className="w-8 h-px bg-border/60" />
-            {/* 下神 */}
+            {/* 天将 */}
             <span className={cn(
-              'text-xl font-bold font-serif',
+              'text-sm font-medium font-serif',
               getWuxingColorClass(ke.data[1] || ''),
             )}>
               {ke.data[1] || '—'}

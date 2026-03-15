@@ -35,11 +35,14 @@ export function JinKouJuePanel({ jkjData }: JinKouJuePanelProps) {
         <div className="flex flex-wrap gap-4 text-sm">
           {date.bazi && (
             <div className="flex gap-2">
-              {['年柱', '月柱', '日柱', '时柱'].map((label, i) => (
-                <span key={label} className="px-2 py-0.5 rounded bg-secondary/30 text-xs">
-                  {label}：{date.bazi[i] || '—'}
-                </span>
-              ))}
+              {['年柱', '月柱', '日柱', '时柱'].map((label, i) => {
+                const baziArr = (date.bazi || '').split(' ');
+                return (
+                  <span key={label} className="px-2 py-0.5 rounded bg-secondary/30 text-xs">
+                    {label}：{baziArr[i] || '—'}
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
