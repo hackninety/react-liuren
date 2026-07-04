@@ -1,27 +1,30 @@
 import { cn } from '@/utils/cn';
 import { getWuxingColorClass } from '@/utils/liuren-colors';
+import type { GongInfo } from '@/engines/types';
 
 interface GongCellProps {
-  diPan: string;      // 地盘（地支）
-  tianPan: string;     // 天盘（地支）
-  tianJiang: string;   // 天将
-  position: string;    // 宫位名（如 "子", "丑"...）
+  gong: GongInfo;
   isHighlight?: boolean;
-  label?: string;      // 额外标记（如 "日" "辰"）
+  label?: string;      // 额外标记（如 "日" "辰" "行年"）
 }
+
+/** 插件角标的展示顺序与样式 */
+const EXTRA_BADGES: { key: string; className: string }[] = [
+  { key: 'changSheng', className: 'text-sky-400/80' },
+  { key: 'wangShuai', className: 'text-amber-400/80' },
+  { key: 'mark', className: 'text-[var(--color-gold)]' },
+];
 
 /**
  * 天地盘单个宫位
  * 垂直三层：天将（顶）→ 天盘（中）→ 地盘（底）
+ * 左下角为插件角标（十二长生/旺衰等）
  */
-export function GongCell({
-  diPan,
-  tianPan,
-  tianJiang,
-  position,
-  isHighlight = false,
-  label,
-}: GongCellProps) {
+export function GongCell({ gong, isHighlight = false, label }: GongCellProps) {
+  const badges = EXTRA_BADGES
+    .map(({ key, className }) => ({ value: gong.extras?.[key], className }))
+    .filter((b): b is { value: string; className: string } => Boolean(b.value));
+
   return (
     <div
       className={cn(
@@ -36,7 +39,7 @@ export function GongCell({
       {/* 宫位背景水印 */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <span className="text-3xl sm:text-4xl font-black font-serif text-foreground/[0.04] select-none">
-          {position}
+          {gong.diZhi}
         </span>
       </div>
 
@@ -49,28 +52,49 @@ export function GongCell({
         </div>
       )}
 
+      {/* 插件角标（长生/旺衰等） */}
+      {badges.length > 0 && (
+        <div className="absolute bottom-0.5 left-1 flex flex-col items-start leading-none z-10">
+          {badges.map((b, i) => (
+            <span key={i} className={cn('text-[8px] sm:text-[9px] font-serif', b.className)}>
+              {b.value}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* 遁干（右上角） */}
+      {gong.dunGan && (
+        <span className={cn(
+          'absolute top-0.5 right-1 text-[8px] sm:text-[9px] font-serif z-10',
+          getWuxingColorClass(gong.dunGan),
+        )}>
+          {gong.dunGan}
+        </span>
+      )}
+
       {/* 天将 */}
       <span className={cn(
         'text-[10px] sm:text-xs font-medium font-serif relative z-10 truncate max-w-full',
-        getWuxingColorClass(tianJiang),
+        getWuxingColorClass(gong.tianJiang),
       )}>
-        {tianJiang || '\u00A0'}
+        {gong.tianJiang || ' '}
       </span>
 
       {/* 天盘（大字） */}
       <span className={cn(
         'text-lg sm:text-xl font-bold font-serif relative z-10',
-        getWuxingColorClass(tianPan),
+        getWuxingColorClass(gong.tianZhi),
       )}>
-        {tianPan || '\u00A0'}
+        {gong.tianZhi || ' '}
       </span>
 
       {/* 地盘 */}
       <span className={cn(
         'text-xs sm:text-sm font-semibold font-serif text-muted-foreground relative z-10',
-        getWuxingColorClass(diPan),
+        getWuxingColorClass(gong.diZhi),
       )}>
-        {diPan || '\u00A0'}
+        {gong.diZhi || ' '}
       </span>
     </div>
   );

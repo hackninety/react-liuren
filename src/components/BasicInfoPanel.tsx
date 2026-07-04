@@ -1,28 +1,19 @@
 import { motion } from 'framer-motion';
 import { formatOffset } from '@/utils/true-solar-time';
+import type { LiuRenChart } from '@/engines/types';
 
 interface BasicInfoPanelProps {
-  liuRenData: any;
+  chart: LiuRenChart;
   trueSolarInfo?: { offsetMinutes: number; longitude: number; trueSolarDate: Date } | null;
   originalDate?: Date;
 }
 
 /**
  * 基础信息面板
- * 对齐 DateInfo 接口：
- *   bazi: string (空格分隔)
- *   date: string
- *   kong: string[]
- *   yima: string
- *   yuejiang: string
- *   xun: string
- *   dingma: string
- *   tianma: string
+ * 展示四柱八字、月将、旬空、马星与所用流派
  */
-export function BasicInfoPanel({ liuRenData, trueSolarInfo, originalDate }: BasicInfoPanelProps) {
-  if (!liuRenData?.dateInfo) return null;
-
-  const { dateInfo } = liuRenData;
+export function BasicInfoPanel({ chart, trueSolarInfo, originalDate }: BasicInfoPanelProps) {
+  const { dateInfo, meta } = chart;
 
   // bazi 是空格分隔字符串："丙午 辛卯 戊子 辛酉"
   const baziArr = (dateInfo.bazi || '').split(' ');
@@ -35,12 +26,13 @@ export function BasicInfoPanel({ liuRenData, trueSolarInfo, originalDate }: Basi
 
   // 额外信息标签
   const infoTags: { label: string; value: string }[] = [];
-  if (dateInfo.yuejiang) infoTags.push({ label: '月将', value: dateInfo.yuejiang });
-  if (dateInfo.kong && dateInfo.kong.length > 0) infoTags.push({ label: '旬空', value: dateInfo.kong.join(' ') });
+  if (dateInfo.yueJiang) infoTags.push({ label: '月将', value: dateInfo.yueJiang });
+  if (dateInfo.kongWang.length > 0) infoTags.push({ label: '旬空', value: dateInfo.kongWang.join(' ') });
   if (dateInfo.xun) infoTags.push({ label: '旬首', value: dateInfo.xun });
-  if (dateInfo.yima) infoTags.push({ label: '驿马', value: dateInfo.yima });
-  if (dateInfo.dingma) infoTags.push({ label: '丁马', value: dateInfo.dingma });
-  if (dateInfo.tianma) infoTags.push({ label: '天马', value: dateInfo.tianma });
+  if (dateInfo.yiMa) infoTags.push({ label: '驿马', value: dateInfo.yiMa });
+  if (dateInfo.dingMa) infoTags.push({ label: '丁马', value: dateInfo.dingMa });
+  if (dateInfo.tianMa) infoTags.push({ label: '天马', value: dateInfo.tianMa });
+  if (dateInfo.dayNight) infoTags.push({ label: '昼夜', value: `${dateInfo.dayNight}占` });
 
   const displayDate = originalDate || new Date();
   const dateStr = displayDate.toLocaleDateString('zh-CN', {
@@ -62,10 +54,10 @@ export function BasicInfoPanel({ liuRenData, trueSolarInfo, originalDate }: Basi
           <span className="text-xs text-muted-foreground">公历日期</span>
           <p className="text-sm font-medium">{dateStr} {timeStr}</p>
         </div>
-        {dateInfo.date && (
+        {dateInfo.ganZhiDate && (
           <div>
             <span className="text-xs text-muted-foreground">干支历</span>
-            <p className="text-sm font-medium">{dateInfo.date}</p>
+            <p className="text-sm font-medium">{dateInfo.ganZhiDate}</p>
           </div>
         )}
         {trueSolarInfo && (
@@ -76,6 +68,12 @@ export function BasicInfoPanel({ liuRenData, trueSolarInfo, originalDate }: Basi
             </p>
           </div>
         )}
+        <div>
+          <span className="text-xs text-muted-foreground">流派引擎</span>
+          <p className="text-sm font-medium text-[var(--color-gold)]">
+            {meta.school} · {meta.engineName}
+          </p>
+        </div>
       </div>
 
       {/* 四柱 */}

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Copy, Check, FileJson } from 'lucide-react';
 
 interface JsonExportPanelProps {
-  data: any;
+  data: unknown;
   title?: string;
 }
 
@@ -38,7 +38,9 @@ export function JsonExportPanel({ data, title = '排盘数据' }: JsonExportPane
   };
 
   const handleCopyPrompt = async () => {
-    const prompt = `请根据以下大六壬/金口诀排盘数据进行详细的断局分析：\n\n${jsonStr}\n\n请从以下几个方面进行分析：\n1. 天地盘格局\n2. 四课三传分析\n3. 日干与天将关系\n4. 神煞吉凶\n5. 综合断语`;
+    const meta = (data as { meta?: { school?: string; engineName?: string } })?.meta;
+    const schoolNote = meta?.school ? `（流派：${meta.school}，引擎：${meta.engineName ?? '未知'}）` : '';
+    const prompt = `请根据以下大六壬/金口诀排盘数据${schoolNote}进行详细的断局分析：\n\n${jsonStr}\n\n请从以下几个方面进行分析：\n1. 天地盘格局\n2. 四课三传分析\n3. 日干与天将关系\n4. 神煞吉凶\n5. 综合断语`;
     try {
       await navigator.clipboard.writeText(prompt);
       setCopied(true);

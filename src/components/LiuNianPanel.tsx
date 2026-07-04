@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
+import type { NianMingChart } from '@/engines/types';
 
 interface LiuNianPanelProps {
-  liuNianData: any;
+  liuNianData: NianMingChart | null;
 }
 
 /**

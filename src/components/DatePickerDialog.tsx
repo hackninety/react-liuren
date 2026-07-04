@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { DIZHI_ORDER } from '@/utils/liuren-colors';
 
@@ -15,7 +14,7 @@ export interface LiuRenOptions {
   diFen?: string;
   // 流年
   birthDate?: Date;
-  gender?: number;  // 1=男, 2=女
+  gender?: '男' | '女';
   // 真太阳时
   longitude?: number;
   location?: string;
@@ -51,7 +50,7 @@ export function DatePickerDialog({ open, onClose, onConfirm, currentDate }: Date
 
   // 流年参数
   const [birthDateStr, setBirthDateStr] = useState('');
-  const [gender, setGender] = useState<number>(1);
+  const [gender, setGender] = useState<'男' | '女'>('男');
 
   const handleConfirm = () => {
     if (mode === 'date') {
@@ -78,26 +77,16 @@ export function DatePickerDialog({ open, onClose, onConfirm, currentDate }: Date
     }
   };
 
-  return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* backdrop */}
-          <motion.div
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
+  if (!open) return null;
 
-          {/* dialog */}
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-          >
+  return (
+    <>
+      {/* backdrop（弹窗不做进出场动画：后台标签页 rAF 冻结时 AnimatePresence 退出动画会挂起导致无法关闭） */}
+      <div
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md glass-card rounded-2xl p-6 bg-card shadow-2xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               {/* header */}
               <div className="flex items-center justify-between mb-4">
@@ -218,8 +207,8 @@ export function DatePickerDialog({ open, onClose, onConfirm, currentDate }: Date
                       <label className="text-xs text-muted-foreground mb-1 block">性别</label>
                       <div className="flex gap-2">
                         {[
-                          { value: 1, label: '男' },
-                          { value: 2, label: '女' },
+                          { value: '男' as const, label: '男' },
+                          { value: '女' as const, label: '女' },
                         ].map((item) => (
                           <button
                             key={item.value}
@@ -247,10 +236,8 @@ export function DatePickerDialog({ open, onClose, onConfirm, currentDate }: Date
                 排盘
               </button>
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      </div>
+    </>
   );
 }
 

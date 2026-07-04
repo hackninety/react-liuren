@@ -1,28 +1,21 @@
 import { motion } from 'framer-motion';
+import type { ShenShaEntry } from '@/engines/types';
 
 interface ShenShaPanelProps {
-  shenSha: any;
+  shenSha: ShenShaEntry[];
 }
 
 /**
  * 神煞列表面板
- *
- * 实际数据格式（ShenShaItem）：
- *   { name: "太岁", value: "午", description: "主一年吉凶..." }
- *   无 type 字段（无吉凶标记）
  */
 export function ShenShaPanel({ shenSha }: ShenShaPanelProps) {
-  if (!shenSha) return null;
-
-  const shenShaList: any[] = Array.isArray(shenSha) ? shenSha : [];
-
-  if (shenShaList.length === 0) {
+  if (shenSha.length === 0) {
     return <p className="text-sm text-muted-foreground">暂无神煞信息</p>;
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      {shenShaList.map((sha: any, index: number) => (
+      {shenSha.map((sha, index) => (
         <motion.div
           key={`${sha.name}-${index}`}
           className="glass-card rounded-lg p-3 flex items-start gap-3"

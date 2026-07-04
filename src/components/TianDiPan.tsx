@@ -1,15 +1,16 @@
 import { motion } from 'framer-motion';
 import { GongCell } from './GongCell';
 import { DIZHI_ORDER } from '@/utils/liuren-colors';
+import type { LiuRenChart } from '@/engines/types';
 
 interface TianDiPanProps {
-  liuRenData: any;
+  chart: LiuRenChart;
 }
 
 /**
  * 天地盘 4×4 方盘布局
  *
- * ShiErGong 使用数字索引 0-11（0=子, 1=丑, ... 11=亥）
+ * chart.gong 索引 0-11（0=子, 1=丑, ... 11=亥）
  *
  * 布局对应（地支索引）：
  *   | 巳(5) | 午(6)  | 未(7) | 申(8)  |
@@ -32,16 +33,11 @@ const GRID_POSITIONS: { dizhiIndex: number; gridArea: string }[] = [
   { dizhiIndex: 11, gridArea: '4 / 4 / 5 / 5' },  // 亥
 ];
 
-export function TianDiPan({ liuRenData }: TianDiPanProps) {
-  if (!liuRenData?.tiandipan) return null;
-
-  const { tiandipan, siKe, dateInfo } = liuRenData;
-  const diPanData = tiandipan['地盘'] || {};
-  const tianPanData = tiandipan['天盘'] || {};
-  const tianJiangData = tiandipan['天将'] || {};
+export function TianDiPan({ chart }: TianDiPanProps) {
+  const { gong, siKe, dateInfo } = chart;
 
   // dateInfo.bazi 是空格分隔字符串："丙午 辛卯 戊子 辛酉"
-  const baziArr = (dateInfo?.bazi || '').split(' ');
+  const baziArr = (dateInfo.bazi || '').split(' ');
   const riZhu = baziArr[2] || '';
   const riGan = riZhu.charAt(0);
   const riZhi = riZhu.charAt(1);
@@ -59,10 +55,8 @@ export function TianDiPan({ liuRenData }: TianDiPanProps) {
         <div className="tiandipan-grid">
           {/* 外圈十二宫 */}
           {GRID_POSITIONS.map(({ dizhiIndex, gridArea }, i) => {
-            const zhi = DIZHI_ORDER[dizhiIndex];
-            const diPan = diPanData[dizhiIndex] || zhi;
-            const tianPan = tianPanData[dizhiIndex] || '';
-            const tianJiang = tianJiangData[dizhiIndex] || '';
+            const gongInfo = gong[dizhiIndex];
+            if (!gongInfo) return null;
 
             // 标记日支所在宫
             let label: string | undefined;
@@ -70,7 +64,7 @@ export function TianDiPan({ liuRenData }: TianDiPanProps) {
 
             return (
               <motion.div
-                key={zhi}
+                key={gongInfo.diZhi}
                 style={{ gridArea }}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -81,10 +75,7 @@ export function TianDiPan({ liuRenData }: TianDiPanProps) {
                 }}
               >
                 <GongCell
-                  diPan={diPan}
-                  tianPan={tianPan}
-                  tianJiang={tianJiang}
-                  position={zhi}
+                  gong={gongInfo}
                   label={label}
                   isHighlight={dizhiIndex === riZhiIndex}
                 />
@@ -94,31 +85,27 @@ export function TianDiPan({ liuRenData }: TianDiPanProps) {
 
           {/* 中心区域 — 四课 */}
           <div className="tiandipan-center flex items-center justify-center p-3 bg-card/30 border border-border/20">
-            {siKe ? (
+            {siKe.length > 0 ? (
               <div className="w-full">
                 <div className="text-center mb-2">
                   <span className="text-[10px] font-semibold text-[var(--color-gold)] uppercase tracking-wider">
-                    {riGan && `日干：${riGan}　日支：${riZhi}`}
+                    {riGan && `日干：${riGan}${'　'}日支：${riZhi}`}
                   </span>
                 </div>
                 <div className="grid grid-cols-4 gap-1">
-                  {(['一课', '二课', '三课', '四课'] as const).map((ke) => {
-                    // siKe 每课格式：["上神关系", "天将"]
-                    const keData = siKe[ke] || [];
-                    return (
-                      <div key={ke} className="flex flex-col items-center gap-0.5">
-                        <span className="text-[9px] text-muted-foreground">{ke}</span>
-                        <div className="flex flex-col items-center">
-                          <span className="text-xs font-bold font-serif text-foreground">
-                            {keData[0] || '—'}
-                          </span>
-                          <span className="text-[9px] text-muted-foreground">
-                            {keData[1] || ''}
-                          </span>
-                        </div>
+                  {siKe.map((ke) => (
+                    <div key={ke.name} className="flex flex-col items-center gap-0.5">
+                      <span className="text-[9px] text-muted-foreground">{ke.name}</span>
+                      <div className="flex flex-col items-center">
+                        <span className="text-xs font-bold font-serif text-foreground">
+                          {ke.shang || ke.xia ? `${ke.shang}${ke.xia}` : '—'}
+                        </span>
+                        <span className="text-[9px] text-muted-foreground">
+                          {ke.tianJiang}
+                        </span>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : (

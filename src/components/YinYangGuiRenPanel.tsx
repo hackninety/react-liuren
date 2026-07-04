@@ -1,23 +1,18 @@
 import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import { getWuxingColorClass, DIZHI_ORDER } from '@/utils/liuren-colors';
+import type { LiuRenChart } from '@/engines/types';
 
 interface YinYangGuiRenPanelProps {
-  yinYangGuiRen: any;
+  yinYangGuiRen: NonNullable<LiuRenChart['yinYangGuiRen']>;
 }
 
 /**
  * 阴阳贵人天将盘面板
- *
- * yinYangGuiRen 数据格式：
- *   { "阳贵人": ShiErGong, "阴贵人": ShiErGong }
- *   ShiErGong 使用数字索引 0-11
+ * 数据格式：{ yang: { 子: 天将, ... }, yin: { 子: 天将, ... } }
  */
 export function YinYangGuiRenPanel({ yinYangGuiRen }: YinYangGuiRenPanelProps) {
-  if (!yinYangGuiRen) return null;
-
-  const yangGuiRen = yinYangGuiRen['阳贵人'] || {};
-  const yinGuiRen = yinYangGuiRen['阴贵人'] || {};
+  const { yang, yin } = yinYangGuiRen;
 
   return (
     <div className="space-y-4">
@@ -32,8 +27,8 @@ export function YinYangGuiRenPanel({ yinYangGuiRen }: YinYangGuiRenPanelProps) {
             ☀ 阳贵人
           </h3>
           <div className="grid grid-cols-4 gap-1">
-            {DIZHI_ORDER.map((zhi, index) => {
-              const tianJiang = yangGuiRen[index] || '';
+            {DIZHI_ORDER.map((zhi) => {
+              const tianJiang = yang[zhi as keyof typeof yang] || '';
               return (
                 <div
                   key={`yang-${zhi}`}
@@ -62,8 +57,8 @@ export function YinYangGuiRenPanel({ yinYangGuiRen }: YinYangGuiRenPanelProps) {
             ☽ 阴贵人
           </h3>
           <div className="grid grid-cols-4 gap-1">
-            {DIZHI_ORDER.map((zhi, index) => {
-              const tianJiang = yinGuiRen[index] || '';
+            {DIZHI_ORDER.map((zhi) => {
+              const tianJiang = yin[zhi as keyof typeof yin] || '';
               return (
                 <div
                   key={`yin-${zhi}`}
