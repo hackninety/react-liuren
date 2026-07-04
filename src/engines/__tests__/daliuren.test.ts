@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { lookfateDaLiuRen } from '../daliuren/lookfate';
 import { mingyuDaLiuRen } from '../daliuren/mingyu';
+import { zsljDaLiuRen } from '../daliuren/zslj';
 import { listDaLiuRenEngines, listXiaoLiuRenEngines } from '../registry';
 import { DI_ZHI } from '../types';
 
@@ -54,9 +55,46 @@ describe('mingyu 引擎（mingyu-core 适配）', () => {
   });
 });
 
+describe('zslj 引擎（占事略決古法适配）', () => {
+  it('日期起课：统一模型结构完整', () => {
+    const chart = zsljDaLiuRen.byDate(new Date('2025-01-01T08:00:00'));
+    expect(chart.meta.engineId).toBe('zslj');
+    expect(chart.meta.school).toBe('占事略決古法');
+    expect(chart.dateInfo.bazi.split(' ')).toHaveLength(4);
+    expect(chart.dateInfo.kongWang).toHaveLength(2);
+    expect(chart.gong).toHaveLength(12);
+    expect(chart.gong.every((g, i) => g.diZhi === DI_ZHI[i])).toBe(true);
+    expect(chart.gong.every((g) => g.tianZhi && g.tianJiang)).toBe(true);
+    expect(chart.siKe).toHaveLength(4);
+    expect(chart.siKe.every((ke) => ke.shang)).toBe(true);
+    expect((DI_ZHI as readonly string[]).includes(chart.sanChuan.chu.zhi)).toBe(true);
+    expect(chart.sanChuan.keTi).toBeTruthy();
+    expect(chart.sanChuan.method).toBeTruthy();
+    // 古法特有 extras
+    expect(Array.isArray(chart.extras.path)).toBe(true);
+    expect((chart.extras.path as unknown[]).length).toBeGreaterThan(0);
+    expect(Array.isArray(chart.extras.gua36)).toBe(true);
+    expect(typeof chart.extras.aiPrompt).toBe('string');
+    expect((chart.extras.aiPrompt as string).length).toBeGreaterThan(100);
+  });
+
+  it('与 lookfate 引擎四柱一致（同一时刻）', () => {
+    const date = new Date('2026-07-04T10:30:00');
+    const a = lookfateDaLiuRen.byDate(date);
+    const b = zsljDaLiuRen.byDate(date);
+    expect(b.dateInfo.bazi).toBe(a.dateInfo.bazi);
+  });
+
+  it('四柱直输（EightChar 反推）', () => {
+    const chart = zsljDaLiuRen.bySiZhu!('甲辰', '丙子', '庚午', '庚辰');
+    expect(chart.dateInfo.bazi).toBe('甲辰 丙子 庚午 庚辰');
+    expect(chart.sanChuan.chu.zhi).toBeTruthy();
+  });
+});
+
 describe('引擎注册表', () => {
-  it('大六壬双引擎、小六壬双引擎', () => {
-    expect(listDaLiuRenEngines().map((e) => e.id)).toEqual(['lookfate', 'mingyu']);
+  it('大六壬三引擎、小六壬双引擎', () => {
+    expect(listDaLiuRenEngines().map((e) => e.id)).toEqual(['lookfate', 'mingyu', 'zslj']);
     expect(listXiaoLiuRenEngines().map((e) => e.id)).toEqual(['lookfate', 'mingyu']);
   });
 });

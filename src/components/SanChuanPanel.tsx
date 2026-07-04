@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { ChevronDown, ChevronUp, ScrollText } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { getWuxingColorClass } from '@/utils/liuren-colors';
 import type { ChuanItem, SanChuanInfo } from '@/engines/types';
 import type { KetiDetailResult } from '@/plugins/keti-detail';
+import { GuFaRefs } from './GuFaRefs';
 
 export interface SanChuanCompare {
   school: string;
@@ -11,23 +14,66 @@ export interface SanChuanCompare {
   mo: string;
 }
 
+/** 古法（占事略決）判定路径步骤，来自 chart.extras.path */
+interface GuFaStep {
+  fa: string;
+  note: string;
+  ref: string;
+}
+
+/** 卅六卦命中，来自 chart.extras.gua36 */
+interface GuFaGua {
+  name: string;
+  certainty: string;
+  why: string;
+}
+
 interface SanChuanPanelProps {
   sanChuan: SanChuanInfo;
   /** 课体细分插件结果（课名 + 细分标签） */
   ketiDetail?: KetiDetailResult;
-  /** 另一流派引擎的三传（对照互证） */
-  compare?: SanChuanCompare;
+  /** 其余流派引擎的三传（对照互证，多引擎并排） */
+  compares?: SanChuanCompare[];
+  /** 引擎 extras（用于古法判定路径 / 卅六卦展示） */
+  extras?: Record<string, unknown>;
+}
+
+function readGuFaPath(extras?: Record<string, unknown>): GuFaStep[] {
+  if (!Array.isArray(extras?.path)) return [];
+  return (extras.path as unknown[]).filter(
+    (s): s is GuFaStep => !!s && typeof (s as GuFaStep).fa === 'string' && typeof (s as GuFaStep).note === 'string',
+  );
+}
+
+function readGuFaGua(extras?: Record<string, unknown>): GuFaGua[] {
+  if (!Array.isArray(extras?.gua36)) return [];
+  return (extras.gua36 as unknown[]).filter(
+    (g): g is GuFaGua => !!g && typeof (g as GuFaGua).name === 'string',
+  );
+}
+
+function readGuFaRefs(extras?: Record<string, unknown>): string[] {
+  if (!Array.isArray(extras?.refs)) return [];
+  return (extras.refs as unknown[]).filter((r): r is string => typeof r === 'string');
 }
 
 /**
  * 三传展示面板
  */
-export function SanChuanPanel({ sanChuan, ketiDetail, compare }: SanChuanPanelProps) {
-  const compareSame =
-    compare &&
-    compare.chu === sanChuan.chu.zhi &&
-    compare.zhong === sanChuan.zhong.zhi &&
-    compare.mo === sanChuan.mo.zhi;
+const CN_NUM = ['零', '一', '二', '三', '四', '五', '六', '七', '八'];
+
+export function SanChuanPanel({ sanChuan, ketiDetail, compares = [], extras }: SanChuanPanelProps) {
+  const [pathOpen, setPathOpen] = useState(false);
+  const guFaPath = readGuFaPath(extras);
+  const guFaGua = readGuFaGua(extras);
+  const guFaRefs = readGuFaRefs(extras);
+  const isSame = (c: SanChuanCompare) =>
+    c.chu === sanChuan.chu.zhi && c.zhong === sanChuan.zhong.zhi && c.mo === sanChuan.mo.zhi;
+
+  // 参与对照的流派总数（当前 + 其余引擎）与整体一致性
+  const totalSchools = compares.length + 1;
+  const allSame = compares.length > 0 && compares.every(isSame);
+  const schoolWord = CN_NUM[totalSchools] ?? String(totalSchools);
 
   const chuanList: { name: string; data: ChuanItem; color: string }[] = [
     { name: '初传', data: sanChuan.chu, color: 'from-[var(--color-gold)]/20' },
@@ -124,20 +170,90 @@ export function SanChuanPanel({ sanChuan, ketiDetail, compare }: SanChuanPanelPr
         ))}
       </div>
 
-      {/* 双引擎三传对照 */}
-      {compare && (
-        <div className="flex flex-wrap items-center gap-2 text-xs rounded-lg bg-secondary/20 border border-border/30 px-3 py-2">
-          <span className="text-muted-foreground">三传对照 · {compare.school}：</span>
-          <span className="font-serif font-semibold">
-            {compare.chu || '—'} → {compare.zhong || '—'} → {compare.mo || '—'}
-          </span>
-          {compareSame ? (
-            <span className="text-green-400">✓ 两派一致</span>
-          ) : (
-            <span className="text-amber-400" title="贵人起法、月将换将时机等流派差异可导致三传不同">
-              ⚠ 存在流派差异
-            </span>
+      {/* 多流派三传对照 */}
+      {compares.length > 0 && (
+        <div className="space-y-1.5">
+          {/* 整体一致性徽章 */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground">三传对照（{schoolWord}派）：</span>
+            {allSame ? (
+              <span className="text-green-400 font-medium">✓ {schoolWord}派三传一致</span>
+            ) : (
+              <span
+                className="text-amber-400 font-medium"
+                title="贵人起法、涉害深浅、月将换将时机等古今流派差异可导致三传不同"
+              >
+                ⚠ 流派间三传存在差异
+              </span>
+            )}
+          </div>
+          {/* 各流派三传逐行 */}
+          {compares.map((c) => (
+            <div
+              key={c.school}
+              className="flex flex-wrap items-center gap-2 text-xs rounded-lg bg-secondary/20 border border-border/30 px-3 py-1.5"
+            >
+              <span className="text-muted-foreground">{c.school}：</span>
+              <span className="font-serif font-semibold">
+                {c.chu || '—'} → {c.zhong || '—'} → {c.mo || '—'}
+              </span>
+              {isSame(c) ? (
+                <span className="text-green-400">✓ 与当前一致</span>
+              ) : (
+                <span className="text-amber-400">⚠ 与当前有别</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 古法（占事略決）：卅六卦命中 + 課用九法判定路径 + 本课原文引用 */}
+      {(guFaGua.length > 0 || guFaPath.length > 0 || guFaRefs.length > 0) && (
+        <div className="rounded-lg bg-secondary/10 border border-border/30 px-3 py-2 space-y-2">
+          {guFaGua.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-muted-foreground">卅六卦：</span>
+              {guFaGua.map((g, i) => (
+                <span
+                  key={`${g.name}-${i}`}
+                  title={g.why}
+                  className={cn(
+                    'px-2 py-0.5 rounded-full border font-serif',
+                    g.certainty === 'exact'
+                      ? 'bg-[var(--color-gold)]/10 text-[var(--color-gold)] border-[var(--color-gold)]/25'
+                      : 'bg-secondary/40 text-muted-foreground border-border/30',
+                  )}
+                >
+                  {g.name}
+                  {g.certainty !== 'exact' && <span className="opacity-70">（近似）</span>}
+                </span>
+              ))}
+            </div>
           )}
+          {guFaPath.length > 0 && (
+            <div className="text-xs">
+              <button
+                onClick={() => setPathOpen((v) => !v)}
+                className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ScrollText className="w-3.5 h-3.5" />
+                <span>古法判定路径（{guFaPath.length} 步）</span>
+                {pathOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
+              {pathOpen && (
+                <ol className="mt-2 space-y-1 list-decimal list-inside">
+                  {guFaPath.map((step, i) => (
+                    <li key={i} className="text-muted-foreground">
+                      <span className="font-medium text-foreground">{step.fa}</span>
+                      <span> — {step.note}</span>
+                      {step.ref && <span className="opacity-60">（{step.ref}）</span>}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          )}
+          {guFaRefs.length > 0 && <GuFaRefs refs={guFaRefs} />}
         </div>
       )}
     </div>

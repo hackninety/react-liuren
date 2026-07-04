@@ -96,7 +96,7 @@ export interface ShenShaEntry {
   description?: string;
 }
 
-export type DaLiuRenEngineId = 'lookfate' | 'mingyu';
+export type DaLiuRenEngineId = 'lookfate' | 'mingyu' | 'zslj';
 
 /** 大六壬排盘统一结果 */
 export interface LiuRenChart {

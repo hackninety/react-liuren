@@ -17,7 +17,12 @@ export function JsonExportPanel({ data, title = '排盘数据' }: JsonExportPane
 
   if (!data) return null;
 
-  const jsonStr = JSON.stringify(data, null, 2);
+  // 导出/展示的 JSON 剔除 extras.aiPrompt（长提示词，已有专用按钮，避免污染数据视图）
+  const jsonStr = JSON.stringify(
+    data,
+    (key, value) => (key === 'aiPrompt' ? undefined : value),
+    2,
+  );
 
   const handleCopy = async () => {
     try {
@@ -38,6 +43,18 @@ export function JsonExportPanel({ data, title = '排盘数据' }: JsonExportPane
   };
 
   const handleCopyPrompt = async () => {
+    // 引擎自带的 AI 提示词优先（如占事略決古法的「依经断课」提示词，自动附命中原文条文）
+    const engineAiPrompt = (data as { extras?: { aiPrompt?: unknown } })?.extras?.aiPrompt;
+    if (typeof engineAiPrompt === 'string' && engineAiPrompt) {
+      try {
+        await navigator.clipboard.writeText(engineAiPrompt);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        // silent
+      }
+      return;
+    }
     const meta = (data as { meta?: { school?: string; engineName?: string } })?.meta;
     const schoolNote = meta?.school ? `（流派：${meta.school}，引擎：${meta.engineName ?? '未知'}）` : '';
     const prompt = `请根据以下大六壬/金口诀排盘数据${schoolNote}进行详细的断局分析：\n\n${jsonStr}\n\n请从以下几个方面进行分析：\n1. 天地盘格局\n2. 四课三传分析\n3. 日干与天将关系\n4. 神煞吉凶\n5. 综合断语`;

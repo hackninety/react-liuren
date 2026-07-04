@@ -172,3 +172,78 @@
 .tab-indicator {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* 典籍库 markdown 排版（无 typography 插件，手写最小样式） */
+.typikon-prose {
+  color: var(--color-foreground);
+  font-size: 0.9rem;
+  line-height: 1.85;
+  word-break: break-word;
+}
+.typikon-prose h1 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0.5rem 0 1rem;
+  color: var(--color-gold);
+  letter-spacing: 0.05em;
+}
+.typikon-prose h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.6rem 0 0.7rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+.typikon-prose h3 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.2rem 0 0.5rem;
+  color: var(--color-gold);
+}
+.typikon-prose p { margin: 0.6rem 0; }
+.typikon-prose blockquote {
+  border-left: 3px solid var(--color-gold);
+  padding: 0.2rem 0 0.2rem 0.9rem;
+  margin: 0.8rem 0;
+  color: var(--color-muted-foreground);
+  background: rgba(128, 128, 128, 0.06);
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+.typikon-prose blockquote p { margin: 0.3rem 0; }
+.typikon-prose ul,
+.typikon-prose ol { margin: 0.6rem 0; padding-left: 1.4rem; }
+.typikon-prose li { margin: 0.3rem 0; }
+.typikon-prose code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82em;
+  background: rgba(128, 128, 128, 0.15);
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+}
+.typikon-prose pre {
+  background: rgba(128, 128, 128, 0.12);
+  padding: 0.8rem 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0.8rem 0;
+}
+.typikon-prose pre code { background: none; padding: 0; }
+.typikon-prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8rem 0;
+  font-size: 0.82rem;
+}
+.typikon-prose th,
+.typikon-prose td {
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  padding: 0.35rem 0.55rem;
+  text-align: center;
+}
+.typikon-prose th { background: rgba(128, 128, 128, 0.1); font-weight: 600; }
+.typikon-prose img { max-width: 100%; height: auto; margin: 0.8rem auto; display: block; border-radius: 0.375rem; }
+.typikon-prose hr { border: none; border-top: 1px solid rgba(128, 128, 128, 0.2); margin: 1.4rem 0; }
+.typikon-prose a { color: var(--color-gold); text-decoration: underline; text-underline-offset: 2px; }

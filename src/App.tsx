@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CalendarDays, Sun, Moon, Hexagon, Coins, TrendingUp, Compass } from 'lucide-react';
+import { CalendarDays, Sun, Moon, Hexagon, Coins, TrendingUp, Compass, BookOpen } from 'lucide-react';
 import { TianDiPan } from '@/components/TianDiPan';
 import { SiKePanel } from '@/components/SiKePanel';
 import { SanChuanPanel } from '@/components/SanChuanPanel';
@@ -31,6 +31,9 @@ import type {
   LiuRenChart,
   NianMingChart,
 } from '@/engines/types';
+
+// 典籍库抽屉懒加载（react-markdown 不进首屏包）
+const TypikonDrawer = lazy(() => import('@/components/TypikonDrawer'));
 
 type TabKey = 'liuren' | 'jinkouque' | 'xiaoliuren' | 'liunian';
 
@@ -80,25 +83,27 @@ function computeChart(
   return { chart: applyPlugins(chart, ctx), notice };
 }
 
-/** 用另一流派引擎对同一输入排盘，取三传做对照互证 */
-function buildCompare(input: ChartInput, mainEngineId: DaLiuRenEngineId): SanChuanCompare | null {
-  const other = listDaLiuRenEngines().find((e) => e.id !== mainEngineId);
-  if (!other) return null;
-  try {
-    let chart: LiuRenChart | null = null;
-    if (input.kind === 'date') {
-      chart = other.byDate(input.date);
-    } else if (other.bySiZhu) {
-      chart = other.bySiZhu(input.year, input.month, input.day, input.hour);
+/** 用其余流派引擎对同一输入排盘，取三传做对照互证（多引擎并排） */
+function buildCompare(input: ChartInput, mainEngineId: DaLiuRenEngineId): SanChuanCompare[] {
+  const compares: SanChuanCompare[] = [];
+  for (const other of listDaLiuRenEngines()) {
+    if (other.id === mainEngineId) continue;
+    try {
+      let chart: LiuRenChart | null = null;
+      if (input.kind === 'date') {
+        chart = other.byDate(input.date);
+      } else if (other.bySiZhu) {
+        chart = other.bySiZhu(input.year, input.month, input.day, input.hour);
+      }
+      if (!chart) continue;
+      const { chu, zhong, mo } = chart.sanChuan;
+      if (!chu.zhi && !zhong.zhi && !mo.zhi) continue;
+      compares.push({ school: other.school, chu: chu.zhi, zhong: zhong.zhi, mo: mo.zhi });
+    } catch (error) {
+      console.warn(`对照引擎 ${other.id} 排盘失败:`, error);
     }
-    if (!chart) return null;
-    const { chu, zhong, mo } = chart.sanChuan;
-    if (!chu.zhi && !zhong.zhi && !mo.zhi) return null;
-    return { school: other.school, chu: chu.zhi, zhong: zhong.zhi, mo: mo.zhi };
-  } catch (error) {
-    console.warn('对照引擎排盘失败:', error);
-    return null;
   }
+  return compares;
 }
 
 /** 首屏初始排盘（渲染前同步计算，避免 effect 级联渲染与加载闪烁） */
@@ -110,7 +115,7 @@ function computeInitialState() {
     return { input, engId, chart, notice, compare: buildCompare(input, engId) };
   } catch (error) {
     console.error('大六壬排盘失败:', error);
-    return { input, engId, chart: null, notice: null, compare: null };
+    return { input, engId, chart: null, notice: null, compare: [] as SanChuanCompare[] };
   }
 }
 
@@ -123,7 +128,7 @@ function App() {
 
   const [engineId, setEngineId] = useState<DaLiuRenEngineId>(initial.engId);
   const [engineNotice, setEngineNotice] = useState<string | null>(initial.notice);
-  const [compareChuan, setCompareChuan] = useState<SanChuanCompare | null>(initial.compare);
+  const [compareChuan, setCompareChuan] = useState<SanChuanCompare[]>(initial.compare);
   const [pluginCtx, setPluginCtx] = useState<PluginContext>({});
   const [lastInput, setLastInput] = useState<ChartInput>(initial.input);
 
@@ -133,6 +138,7 @@ function App() {
     return h >= 18 || h < 6;
   });
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [typikonOpen, setTypikonOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(
     initial.input.kind === 'date' ? initial.input.date : new Date(),
   );
@@ -264,6 +270,13 @@ function App() {
                 {currentEngine.school}
               </span>
             )}
+            <button
+              onClick={() => setTypikonOpen(true)}
+              className="p-2 rounded-lg hover:bg-secondary transition-colors"
+              title="典籍库 ·《占事略決》原文"
+            >
+              <BookOpen className="w-4 h-4" />
+            </button>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-secondary transition-colors"
@@ -404,7 +417,8 @@ function App() {
                   <SanChuanPanel
                     sanChuan={liuRenChart.sanChuan}
                     ketiDetail={liuRenChart.extras['keti-detail'] as KetiDetailResult | undefined}
-                    compare={compareChuan ?? undefined}
+                    compares={compareChuan}
+                    extras={liuRenChart.extras}
                   />
                 </motion.div>
               )}
@@ -565,6 +579,13 @@ function App() {
         onConfirm={handleDateConfirm}
         currentDate={selectedDate}
       />
+
+      {/* 典籍库抽屉（懒加载） */}
+      {typikonOpen && (
+        <Suspense fallback={null}>
+          <TypikonDrawer onClose={() => setTypikonOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }

@@ -13,12 +13,13 @@ import type {
 } from './types';
 import { lookfateDaLiuRen } from './daliuren/lookfate';
 import { mingyuDaLiuRen } from './daliuren/mingyu';
+import { zsljDaLiuRen } from './daliuren/zslj';
 import { lookfateXiaoLiuRen } from './xiaoliuren/lookfate';
 import { mingyuXiaoLiuRen } from './xiaoliuren/mingyu';
 
 // ---------- 大六壬 ----------
 
-const daLiuRenEngines: DaLiuRenEngine[] = [lookfateDaLiuRen, mingyuDaLiuRen];
+const daLiuRenEngines: DaLiuRenEngine[] = [lookfateDaLiuRen, mingyuDaLiuRen, zsljDaLiuRen];
 
 export const DEFAULT_DALIUREN_ENGINE_ID: DaLiuRenEngineId = 'lookfate';
 

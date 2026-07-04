@@ -11,7 +11,7 @@ import {
   type LiuRenResult,
   type ShiErGong,
 } from 'liuren-ts-lib';
-import { Solar } from 'lunar-javascript';
+import { EightChar } from 'tyme4ts';
 import {
   DI_ZHI,
   type ChartDateInfo,
@@ -138,43 +138,25 @@ function toChart(result: LiuRenResult): LiuRenChart {
  * 四柱 → 公历时间反推。
  *
  * 上游 getLiuRenBySiZhu 存在缺陷（v1.9 与 v3.0 均抛 getYear 错误，
- * 已用基线验证），此处本地实现：按年柱周期锁定候选年份（含立春跨年），
- * 用 lunar-javascript 快速筛出年/月/日柱全匹配的日期，再以
- * liuren-ts-lib 自身的 getDateByObj 复核四柱，保证与排盘引擎口径一致。
+ * 已用基线验证），此处以 tyme4ts EightChar 反推候选公历时刻，
+ * 再用 liuren-ts-lib 自身的 getDateByObj 复核四柱，保证与排盘引擎口径一致。
  *
- * 注意：同一月柱内月将可能因中气换将而不同，反推取区间内首个匹配日。
+ * 注意：同一月柱内月将可能因中气换将而不同，反推取区间内首个匹配时刻。
  */
 function findDateBySiZhu(year: string, month: string, day: string, hour: string): Date {
-  const hourZhi = hour.charAt(1);
-  const hourIdx = DI_ZHI.indexOf(hourZhi as DiZhi);
-  if (hourIdx < 0) throw new Error(`时柱地支无效："${hour}"`);
-  const hourNum = hourIdx * 2; // 各时辰代表时刻：子0、丑2、寅4 … 亥22
-
   const expectedBazi = `${year} ${month} ${day} ${hour}`;
-
-  for (let y = 1924; y <= 2103; y++) {
-    // 年柱粗筛（1984 为甲子；立春跨年在日扫描区间内覆盖）
-    const ganMatch = '甲乙丙丁戊己庚辛壬癸'.charAt((((y - 4) % 10) + 10) % 10);
-    const zhiMatch = DI_ZHI[(((y - 4) % 12) + 12) % 12];
-    if (`${ganMatch}${zhiMatch}` !== year) continue;
-
-    const start = new Date(y, 0, 1);
-    const end = new Date(y + 1, 1, 28);
-    for (let t = start.getTime(); t <= end.getTime(); t += 86400000) {
-      const d = new Date(t);
-      const lunar = Solar.fromYmdHms(d.getFullYear(), d.getMonth() + 1, d.getDate(), hourNum, 0, 0).getLunar();
-      if (lunar.getYearInGanZhiByLiChun() !== year) continue;
-      if (lunar.getMonthInGanZhiExact() !== month) continue;
-      if (lunar.getDayInGanZhi() !== day) continue;
-      if (lunar.getTimeInGanZhi() !== hour) continue;
-
-      // 用排盘引擎自身复核，保证口径一致
-      const candidate = new Date(d.getFullYear(), d.getMonth(), d.getDate(), hourNum, 0, 0);
-      const info = getDateByObj(candidate) as { bazi?: string };
-      if (info.bazi === expectedBazi) return candidate;
-    }
+  let candidates: ReturnType<EightChar['getSolarTimes']>;
+  try {
+    candidates = new EightChar(year, month, day, hour).getSolarTimes(1900, 2100);
+  } catch (error) {
+    throw new Error(`四柱「${expectedBazi}」无效：${error instanceof Error ? error.message : String(error)}`);
   }
-  throw new Error(`无法根据四柱「${expectedBazi}」反推出公历时间，请检查四柱是否有效`);
+  for (const t of candidates) {
+    const candidate = new Date(t.getYear(), t.getMonth() - 1, t.getDay(), t.getHour(), t.getMinute(), t.getSecond());
+    const info = getDateByObj(candidate) as { bazi?: string };
+    if (info.bazi === expectedBazi) return candidate;
+  }
+  throw new Error(`无法根据四柱「${expectedBazi}」反推出 1900–2100 年内的公历时间，请检查四柱是否有效`);
 }
 
 export const lookfateDaLiuRen: DaLiuRenEngine = {
