@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Copy, Check, Download, FileJson, FileText, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/cn';
@@ -12,18 +12,64 @@ interface JsonExportPanelProps {
 /** 剔除 extras.aiPrompt（长提示词，已有专用按钮，避免污染数据视图/文件） */
 const jsonReplacer = (key: string, value: unknown) => (key === 'aiPrompt' ? undefined : value);
 
+interface KeJingLike {
+  name: string;
+  book: string;
+  juan: number;
+  text: string;
+}
+
+/** 大六壬盘形（课体名可深链课体节库）判定 */
+function liuRenNames(d: unknown): string[] {
+  const c = d as {
+    sanChuan?: { keTi?: string; method?: string };
+    extras?: Record<string, unknown>;
+  };
+  if (!c || typeof c !== 'object' || !c.sanChuan || !c.extras) return [];
+  const kd = c.extras['keti-detail'] as { subTypes?: string[] } | undefined;
+  return [c.sanChuan.keTi, c.sanChuan.method, ...(kd?.subTypes ?? [])].filter(
+    (n): n is string => !!n,
+  );
+}
+
 /**
  * 数据导出 & AI 分析面板
  * 支持 JSON / Markdown 双格式：复制或导出文件（MD 更紧凑省 token，AI 可直接阅读），
- * 两者均完整记录全盘信息。
+ * 两者均完整记录全盘信息。大六壬盘导出前异步补挂 extras.kejing
+ * （課經/心鏡课体原文引，lrdq-ts-lib/keju 惰性拉取），MD/JSON/AI Prompt 均携带。
  */
 export function JsonExportPanel({ data, title = '排盘数据' }: JsonExportPanelProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [format, setFormat] = useState<'md' | 'json'>('md');
+  const [kejing, setKejing] = useState<{ src: unknown; entries: KeJingLike[] } | null>(null);
 
-  const jsonStr = useMemo(() => (data ? JSON.stringify(data, jsonReplacer, 2) : ''), [data]);
-  const mdStr = useMemo(() => (data ? chartToMarkdown(data) : ''), [data]);
+  useEffect(() => {
+    const names = liuRenNames(data);
+    if (!names.length) return;
+    let live = true;
+    import('lrdq-ts-lib/keju')
+      .then((m) => {
+        if (live) setKejing({ src: data, entries: m.findKeJing(names) });
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [data]);
+
+  // 课体原文引就绪且对应当前盘时并入导出数据（extras.kejing）
+  const exportData = useMemo(() => {
+    if (!data || kejing?.src !== data || !kejing.entries.length) return data;
+    const c = data as { extras?: Record<string, unknown> };
+    return { ...c, extras: { ...c.extras, kejing: kejing.entries } };
+  }, [data, kejing]);
+
+  const jsonStr = useMemo(
+    () => (exportData ? JSON.stringify(exportData, jsonReplacer, 2) : ''),
+    [exportData],
+  );
+  const mdStr = useMemo(() => (exportData ? chartToMarkdown(exportData) : ''), [exportData]);
 
   if (!data) return null;
 

@@ -3,6 +3,7 @@ import { BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface KeJingView {
   name: string;
+  book: string;
   juan: number;
   order: number;
   text: string;
@@ -13,7 +14,9 @@ interface KeJingRefsProps {
   names: string[];
 }
 
-const JUAN_CN: Record<number, string> = { 7: '七', 8: '八', 9: '九', 10: '十' };
+const JUAN_CN: Record<number, string> = {
+  1: '一', 2: '二', 3: '三', 7: '七', 8: '八', 9: '九', 10: '十',
+};
 
 /**
  * 课体課經原文深链 —— 把三传面板的课体名解析为《六壬大全·課經》原文节就地展开。
@@ -41,14 +44,12 @@ export function KeJingRefs({ names }: KeJingRefsProps) {
         className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
       >
         <BookOpen className="w-3.5 h-3.5" />
-        <span>課經原文（《六壬大全》卷七~十）</span>
+        <span>课体原文（《六壬大全·課經》《六壬心鏡》）</span>
         {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
       </button>
       {open && entries === null && <p className="mt-2 text-muted-foreground/60">加载中…</p>}
       {open && entries !== null && entries.length === 0 && (
-        <p className="mt-2 text-muted-foreground/60">
-          本课体名未见于《課經》集（課經收九宗门与六十四课体，贼克/涉害等取传法无专节）
-        </p>
+        <p className="mt-2 text-muted-foreground/60">本课体名未见于《課經》与《心鏡》课体节</p>
       )}
       {open && !!entries?.length && (
         <div className="mt-2 space-y-2">
@@ -58,9 +59,9 @@ export function KeJingRefs({ names }: KeJingRefsProps) {
               className="border-l-2 border-[var(--color-gold)]/50 pl-3 py-0.5 bg-secondary/10 rounded-r"
             >
               <div className="font-serif font-semibold text-foreground">
-                {e.name}課
+                {e.name}
                 <span className="ml-1.5 text-[10px] font-normal text-muted-foreground/60">
-                  卷{JUAN_CN[e.juan] ?? e.juan}·課經
+                  《{e.book}》卷{JUAN_CN[e.juan] ?? e.juan}
                 </span>
               </div>
               <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed mt-0.5 max-h-64 overflow-y-auto">

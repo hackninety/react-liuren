@@ -51,6 +51,21 @@ function makeLiuRen(): LiuRenChart {
         { no: 7, name: '旺祿臨身', fu: '旺祿臨身徒妄作', certainty: 'exact', why: '日祿寅臨干上' },
         { no: 32, name: '三傳互克', fu: '三傳互克眾人欺', certainty: 'approx', why: '初克中、中克末' },
       ],
+      'dq-shensha': {
+        month: '十一月',
+        table: [
+          { section: '十天干神煞', name: '日祿', value: '申', hit: true },
+          { section: '歲神煞', name: '將軍', value: '卯', note: '占行人用', hit: false },
+        ],
+        gongYue: [
+          { pos: '干上·末传', zhi: '申', ji: ['驛馬', '信神'], xiong: ['月破'] },
+          { pos: '初传', zhi: '寅', ji: ['皇書'], xiong: [] },
+        ],
+      },
+      kejing: [
+        { name: '元首', book: '六壬大全', juan: 7, order: 1, text: '凡一上克下，餘課無克，為元首課，象天。' },
+        { name: '元首', book: '六壬心鏡', juan: 1, order: 80, text: '一上克下為元首。' },
+      ],
     },
     raw: null,
   };
@@ -91,6 +106,19 @@ describe('chartToMarkdown · 大六壬（含古法 extras）', () => {
     expect(md).toContain('## 毕法命中（《畢法賦》97/100 法检测）');
     expect(md).toContain('- 第7法 旺祿臨身徒妄作（确判）— 日祿寅臨干上');
     expect(md).toContain('- 第32法 三傳互克眾人欺（近似）— 初克中、中克末');
+  });
+  it('大全神煞段落（入课传 + 课传月煞 + 全表指引）', () => {
+    expect(md).toContain('## 大全神煞（《六壬大全》卷一立成，月建十一月）');
+    expect(md).toContain('- 入课传：日祿申（十天干神煞）');
+    expect(md).toContain('- 干上·末传申：吉 驛馬 信神；凶 月破');
+    expect(md).toContain('- 初传寅：吉 皇書');
+    expect(md).toContain('全表 2 条见 JSON');
+  });
+  it('课体原文引段落（两书互证）', () => {
+    expect(md).toContain('## 课体原文引（《六壬大全·課經》《六壬心鏡》）');
+    expect(md).toContain('### 元首（《六壬大全》卷7）');
+    expect(md).toContain('### 元首（《六壬心鏡》卷1）');
+    expect(md).toContain('凡一上克下，餘課無克');
   });
 });
 

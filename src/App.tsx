@@ -7,6 +7,7 @@ import { SanChuanPanel } from '@/components/SanChuanPanel';
 import { BasicInfoPanel } from '@/components/BasicInfoPanel';
 import { JianChuPanel } from '@/components/JianChuPanel';
 import { ShenShaPanel } from '@/components/ShenShaPanel';
+import type { DqShenShaResult } from '@/plugins/dq-shensha';
 import { JinKouJuePanel } from '@/components/JinKouJuePanel';
 import { LiuNianPanel } from '@/components/LiuNianPanel';
 import { YinYangGuiRenPanel } from '@/components/YinYangGuiRenPanel';
@@ -455,8 +456,8 @@ function App() {
                 </motion.div>
               )}
 
-              {/* 神煞 */}
-              {liuRenChart && liuRenChart.shenSha.length > 0 && (
+              {/* 神煞（引擎神煞 + 大全神煞插件） */}
+              {liuRenChart && (liuRenChart.shenSha.length > 0 || !!liuRenChart.extras['dq-shensha']) && (
                 <motion.div
                   className="glass-card rounded-xl p-4"
                   initial={{ opacity: 0, y: 20 }}
@@ -467,7 +468,10 @@ function App() {
                     <div className="w-1 h-4 rounded-full bg-[var(--color-gold)]" />
                     神煞
                   </h2>
-                  <ShenShaPanel shenSha={liuRenChart.shenSha} />
+                  <ShenShaPanel
+                    shenSha={liuRenChart.shenSha}
+                    dq={liuRenChart.extras['dq-shensha'] as DqShenShaResult | undefined}
+                  />
                 </motion.div>
               )}
 

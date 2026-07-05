@@ -127,6 +127,30 @@ function liuRenToMd(c: LiuRenChart): string {
     L.push('');
   }
 
+  // 大全神煞（dq-shensha 插件：《六壬大全》卷一立成）
+  const dqss = c.extras['dq-shensha'] as
+    | {
+        month: string;
+        table: { section: string; name: string; value: string; note?: string; hit: boolean }[];
+        gongYue: { pos: string; zhi: string; ji: string[]; xiong: string[] }[];
+      }
+    | undefined;
+  if (dqss) {
+    L.push(`## 大全神煞（《六壬大全》卷一立成${dqss.month ? `，月建${dqss.month}` : ''}）`);
+    const hits = dqss.table.filter((r) => r.hit);
+    if (hits.length) {
+      L.push(`- 入课传：${hits.map((r) => `${r.name}${r.value}（${r.section}）`).join('、')}`);
+    }
+    for (const g of dqss.gongYue) {
+      const parts = [];
+      if (g.ji.length) parts.push(`吉 ${g.ji.join(' ')}`);
+      if (g.xiong.length) parts.push(`凶 ${g.xiong.join(' ')}`);
+      L.push(`- ${g.pos}${g.zhi}：${parts.join('；') || '—'}`);
+    }
+    L.push(`- 神煞落支全表 ${dqss.table.length} 条见 JSON extras["dq-shensha"]`);
+    L.push('');
+  }
+
   // 古法（占事略決）
   const gua36 = c.extras.gua36 as { name: string; certainty: string; why?: string }[] | undefined;
   const path = c.extras.path as { fa: string; note: string; ref: string }[] | undefined;
@@ -145,6 +169,17 @@ function liuRenToMd(c: LiuRenChart): string {
     }
     if (refs?.length) L.push(`- 原文锚点：${refs.join('、')}`);
     L.push('');
+  }
+
+  // 课体原文引（导出面板异步补挂 extras.kejing：課經/心鏡课体节全文）
+  const kejing = c.extras.kejing as
+    | { name: string; book: string; juan: number; text: string }[]
+    | undefined;
+  if (kejing?.length) {
+    L.push('## 课体原文引（《六壬大全·課經》《六壬心鏡》）');
+    for (const e of kejing) {
+      L.push(`### ${e.name}（《${e.book}》卷${e.juan}）`, '', e.text, '');
+    }
   }
 
   return L.join('\n').trim() + '\n';

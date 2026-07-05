@@ -3,6 +3,7 @@ import { getChangSheng } from '../chang-sheng';
 import { classifySubTypes, ketiDetailPlugin } from '../keti-detail';
 import { xingNianGanZhi, yearGanZhi } from '../xingnian';
 import { bifaPlugin } from '../bifa';
+import { dqShenShaPlugin, type DqShenShaResult } from '../dq-shensha';
 import { PLUGINS } from '../index';
 import type { LiuRenChart } from '../../engines/types';
 
@@ -103,6 +104,38 @@ describe('毕法赋插件', () => {
       keTi: '',
     };
     expect(bifaPlugin.compute(chart)).toBeUndefined();
+  });
+});
+
+describe('大全神煞插件', () => {
+  it('三表落支与课传月煞（正月盘金标）', () => {
+    const chart = fakeChart('丙午 丙寅 甲子 甲子', '寅'); // 寅月 → 正月；干上寅
+    chart.siKe[2].shang = '申';
+    chart.sanChuan = {
+      chu: { zhi: '子', tianJiang: '' },
+      zhong: { zhi: '辰', tianJiang: '' },
+      mo: { zhi: '申', tianJiang: '' },
+      keTi: '',
+    };
+    const r = dqShenShaPlugin.compute(chart) as DqShenShaResult;
+    expect(r.month).toBe('正月');
+    // 十天干表：甲日祿寅，干上寅 → 入课传
+    const lu = r.table.find((t) => t.name === '日祿')!;
+    expect(lu.value).toBe('寅');
+    expect(lu.hit).toBe(true);
+    // 歲神煞：午年將軍午（占行人注保留）
+    const jj = r.table.find((t) => t.name === '將軍')!;
+    expect(jj.note).toBe('占行人用');
+    // 逐月立成：正月子宫上栏生氣；干上寅宫上栏皇書
+    expect(r.gongYue.find((g) => g.zhi === '子')?.ji).toContain('生氣');
+    expect(r.gongYue.find((g) => g.zhi === '寅')?.ji).toContain('皇書');
+    // 同支合并位置标签（初传子独立、支上与末传同为申合并）
+    expect(r.gongYue.find((g) => g.zhi === '申')?.pos).toBe('支上·末传');
+  });
+
+  it('已注册于 PLUGINS（7 插件）', () => {
+    expect(PLUGINS.some((p) => p.id === 'dq-shensha')).toBe(true);
+    expect(PLUGINS).toHaveLength(7);
   });
 });
 

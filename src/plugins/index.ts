@@ -10,6 +10,7 @@ import { ketiDetailPlugin } from './keti-detail';
 import { changShengPlugin } from './chang-sheng';
 import { wangShuaiPlugin } from './wang-shuai';
 import { shenShaExtraPlugin } from './shensha-extra';
+import { dqShenShaPlugin } from './dq-shensha';
 import { xingNianPlugin } from './xingnian';
 import { bifaPlugin } from './bifa';
 
@@ -18,6 +19,7 @@ export const PLUGINS: LiuRenPlugin[] = [
   changShengPlugin,
   wangShuaiPlugin,
   shenShaExtraPlugin,
+  dqShenShaPlugin,
   xingNianPlugin,
   bifaPlugin,
 ];
