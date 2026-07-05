@@ -56,9 +56,15 @@ export default function TypikonDrawer({ onClose }: TypikonDrawerProps) {
   };
 
   return (
-    <>
-      <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 z-[60] w-full max-w-2xl bg-card shadow-2xl border-l border-border/50 flex flex-col">
+    <div
+      className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm sm:flex sm:items-center sm:justify-center sm:p-4 md:p-6"
+      onClick={onClose}
+    >
+      {/* 移动端全屏；desktop 居中弹窗（更宽、圆角、留边） */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 flex flex-col bg-card shadow-2xl overflow-hidden sm:static sm:inset-auto sm:w-full sm:max-w-3xl sm:h-[85vh] sm:rounded-2xl sm:border sm:border-border/50"
+      >
         {/* header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 shrink-0">
           <div className="flex items-center gap-2">
@@ -129,6 +135,6 @@ export default function TypikonDrawer({ onClose }: TypikonDrawerProps) {
           </article>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -65,7 +65,8 @@
   --secondary-foreground: oklch(0.25 0.02 30);
 
   --muted: oklch(0.94 0.006 60);
-  --muted-foreground: oklch(0.45 0.02 30);
+  /* 加深并略降彩度：原 0.45/0.02 在近白背景下小字发灰看不清（暗色模式不受影响） */
+  --muted-foreground: oklch(0.40 0.016 40);
 
   --accent: oklch(0.45 0.15 85);
   --accent-foreground: oklch(0.98 0.01 80);
