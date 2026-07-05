@@ -47,6 +47,10 @@ function makeLiuRen(): LiuRenChart {
       gua36: [{ name: '蒿矢卦', certainty: 'exact', why: '遥克' }],
       path: [{ fa: '遙剋', note: '日遥克神', ref: 'senji02' }],
       refs: ['senji02', 'senji26'],
+      bifa: [
+        { no: 7, name: '旺祿臨身', fu: '旺祿臨身徒妄作', certainty: 'exact', why: '日祿寅臨干上' },
+        { no: 32, name: '三傳互克', fu: '三傳互克眾人欺', certainty: 'approx', why: '初克中、中克末' },
+      ],
     },
     raw: null,
   };
@@ -82,6 +86,11 @@ describe('chartToMarkdown · 大六壬（含古法 extras）', () => {
     expect(md).toContain('- 卅六卦：蒿矢卦');
     expect(md).toContain('1. 遙剋 — 日遥克神（senji02）');
     expect(md).toContain('- 原文锚点：senji02、senji26');
+  });
+  it('毕法命中段落', () => {
+    expect(md).toContain('## 毕法命中（《畢法賦》首批检测 23/100）');
+    expect(md).toContain('- 第7法 旺祿臨身徒妄作（确判）— 日祿寅臨干上');
+    expect(md).toContain('- 第32法 三傳互克眾人欺（近似）— 初克中、中克末');
   });
 });
 

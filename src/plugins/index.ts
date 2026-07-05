@@ -11,6 +11,7 @@ import { changShengPlugin } from './chang-sheng';
 import { wangShuaiPlugin } from './wang-shuai';
 import { shenShaExtraPlugin } from './shensha-extra';
 import { xingNianPlugin } from './xingnian';
+import { bifaPlugin } from './bifa';
 
 export const PLUGINS: LiuRenPlugin[] = [
   ketiDetailPlugin,
@@ -18,6 +19,7 @@ export const PLUGINS: LiuRenPlugin[] = [
   wangShuaiPlugin,
   shenShaExtraPlugin,
   xingNianPlugin,
+  bifaPlugin,
 ];
 
 const STORAGE_KEY = 'liuren-disabled-plugins';

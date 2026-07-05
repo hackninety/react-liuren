@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { getChangSheng } from '../chang-sheng';
 import { classifySubTypes, ketiDetailPlugin } from '../keti-detail';
 import { xingNianGanZhi, yearGanZhi } from '../xingnian';
+import { bifaPlugin } from '../bifa';
+import { PLUGINS } from '../index';
 import type { LiuRenChart } from '../../engines/types';
 
 describe('十二长生', () => {
@@ -69,6 +71,38 @@ describe('课名（局数）', () => {
     const result = ketiDetailPlugin.compute(fakeChart('丙午 辛卯 戊子 辛酉', '申')) as { ju: number; keName: string };
     expect(result.ju).toBe(10);
     expect(result.keName).toBe('戊子日第十局 干上申');
+  });
+});
+
+describe('毕法赋插件', () => {
+  it('已注册于 PLUGINS', () => {
+    expect(PLUGINS.some((p) => p.id === 'bifa')).toBe(true);
+  });
+
+  it('旺禄临身：甲子日禄寅临干上命中第7法（兼第41法禄马同乡）', () => {
+    const chart = fakeChart('丙午 甲午 甲子 甲子', '寅');
+    chart.sanChuan = {
+      chu: { zhi: '卯', tianJiang: '' },
+      zhong: { zhi: '辰', tianJiang: '' },
+      mo: { zhi: '巳', tianJiang: '' },
+      keTi: '',
+    };
+    const hits = bifaPlugin.compute(chart) as { no: number; certainty: string }[];
+    const nos = hits.map((h) => h.no);
+    expect(nos).toContain(7);
+    expect(nos).toContain(41);
+  });
+
+  it('无命中时返回 undefined（不写入 extras）', () => {
+    const chart = fakeChart('丙午 甲午 乙丑 甲子', '午');
+    // 午申丑：无递生/递克/连茹/纯阴阳等任何毕法关系
+    chart.sanChuan = {
+      chu: { zhi: '午', tianJiang: '' },
+      zhong: { zhi: '申', tianJiang: '' },
+      mo: { zhi: '丑', tianJiang: '' },
+      keTi: '',
+    };
+    expect(bifaPlugin.compute(chart)).toBeUndefined();
   });
 });
 

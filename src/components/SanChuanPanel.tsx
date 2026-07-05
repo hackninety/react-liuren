@@ -28,6 +28,15 @@ interface GuFaGua {
   why: string;
 }
 
+/** 毕法命中，来自 chart.extras.bifa（lrdq-ts-lib） */
+interface BifaHitView {
+  no: number;
+  name: string;
+  fu: string;
+  certainty: string;
+  why: string;
+}
+
 interface SanChuanPanelProps {
   sanChuan: SanChuanInfo;
   /** 课体细分插件结果（课名 + 细分标签） */
@@ -57,6 +66,14 @@ function readGuFaRefs(extras?: Record<string, unknown>): string[] {
   return (extras.refs as unknown[]).filter((r): r is string => typeof r === 'string');
 }
 
+function readBifaHits(extras?: Record<string, unknown>): BifaHitView[] {
+  if (!Array.isArray(extras?.bifa)) return [];
+  return (extras.bifa as unknown[]).filter(
+    (h): h is BifaHitView =>
+      !!h && typeof (h as BifaHitView).no === 'number' && typeof (h as BifaHitView).fu === 'string',
+  );
+}
+
 /**
  * 三传展示面板
  */
@@ -64,9 +81,11 @@ const CN_NUM = ['零', '一', '二', '三', '四', '五', '六', '七', '八'];
 
 export function SanChuanPanel({ sanChuan, ketiDetail, compares = [], extras }: SanChuanPanelProps) {
   const [pathOpen, setPathOpen] = useState(false);
+  const [bifaOpen, setBifaOpen] = useState(false);
   const guFaPath = readGuFaPath(extras);
   const guFaGua = readGuFaGua(extras);
   const guFaRefs = readGuFaRefs(extras);
+  const bifaHits = readBifaHits(extras);
   const isSame = (c: SanChuanCompare) =>
     c.chu === sanChuan.chu.zhi && c.zhong === sanChuan.zhong.zhi && c.mo === sanChuan.mo.zhi;
 
@@ -254,6 +273,52 @@ export function SanChuanPanel({ sanChuan, ketiDetail, compares = [], extras }: S
             </div>
           )}
           {guFaRefs.length > 0 && <GuFaRefs refs={guFaRefs} />}
+        </div>
+      )}
+
+      {/* 毕法赋命中（《六壬大全》卷十一/十二，首批 23/100 法） */}
+      {bifaHits.length > 0 && (
+        <div className="rounded-lg bg-secondary/10 border border-border/30 px-3 py-2 space-y-2">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-muted-foreground">毕法命中（首批检测 23/100）：</span>
+            {bifaHits.map((h) => (
+              <span
+                key={h.no}
+                title={`${h.fu} — ${h.why}`}
+                className={cn(
+                  'px-2 py-0.5 rounded-full border font-serif',
+                  h.certainty === 'exact'
+                    ? 'bg-[var(--color-gold)]/10 text-[var(--color-gold)] border-[var(--color-gold)]/25'
+                    : 'bg-secondary/40 text-muted-foreground border-border/30',
+                )}
+              >
+                {h.name}
+                {h.certainty !== 'exact' && <span className="opacity-70">（近似）</span>}
+              </span>
+            ))}
+          </div>
+          <div className="text-xs">
+            <button
+              onClick={() => setBifaOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ScrollText className="w-3.5 h-3.5" />
+              <span>断辞详情（{bifaHits.length} 条）</span>
+              {bifaOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+            {bifaOpen && (
+              <ul className="mt-2 space-y-1">
+                {bifaHits.map((h) => (
+                  <li key={h.no} className="text-muted-foreground">
+                    <span className="text-foreground font-medium">第{h.no}法</span>
+                    <span className="font-serif"> {h.fu}</span>
+                    <span> — {h.why}</span>
+                    <span className="opacity-60">（{h.certainty === 'exact' ? '确判' : '近似'}，全文见典籍库）</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       )}
     </div>

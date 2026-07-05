@@ -115,6 +115,18 @@ function liuRenToMd(c: LiuRenChart): string {
     L.push('');
   }
 
+  // 毕法命中（lrdq-ts-lib 插件）
+  const bifaHits = c.extras.bifa as
+    | { no: number; name: string; fu: string; certainty: string; why: string }[]
+    | undefined;
+  if (bifaHits?.length) {
+    L.push('## 毕法命中（《畢法賦》首批检测 23/100）');
+    for (const h of bifaHits) {
+      L.push(`- 第${h.no}法 ${h.fu}（${h.certainty === 'exact' ? '确判' : '近似'}）— ${h.why}`);
+    }
+    L.push('');
+  }
+
   // 古法（占事略決）
   const gua36 = c.extras.gua36 as { name: string; certainty: string; why?: string }[] | undefined;
   const path = c.extras.path as { fa: string; note: string; ref: string }[] | undefined;
