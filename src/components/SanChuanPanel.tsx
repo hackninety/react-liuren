@@ -6,6 +6,7 @@ import { getWuxingColorClass } from '@/utils/liuren-colors';
 import type { ChuanItem, SanChuanInfo } from '@/engines/types';
 import type { KetiDetailResult } from '@/plugins/keti-detail';
 import { GuFaRefs } from './GuFaRefs';
+import { KeJingRefs } from './KeJingRefs';
 
 export interface SanChuanCompare {
   school: string;
@@ -86,6 +87,9 @@ export function SanChuanPanel({ sanChuan, ketiDetail, compares = [], extras }: S
   const guFaGua = readGuFaGua(extras);
   const guFaRefs = readGuFaRefs(extras);
   const bifaHits = readBifaHits(extras);
+  const keJingNames = [sanChuan.keTi, sanChuan.method, ...(ketiDetail?.subTypes ?? [])].filter(
+    (n): n is string => !!n,
+  );
   const isSame = (c: SanChuanCompare) =>
     c.chu === sanChuan.chu.zhi && c.zhong === sanChuan.zhong.zhi && c.mo === sanChuan.mo.zhi;
 
@@ -133,6 +137,9 @@ export function SanChuanPanel({ sanChuan, ketiDetail, compares = [], extras }: S
           )}
         </div>
       )}
+
+      {/* 课体 →《課經》原文深链（lrdq-ts-lib/keju 惰性拉取） */}
+      {keJingNames.length > 0 && <KeJingRefs key={keJingNames.join('|')} names={keJingNames} />}
 
       {/* 三传 */}
       <div className="grid grid-cols-3 gap-3">
