@@ -88,4 +88,5 @@ npm run build
 
 ## 📄 许可协议
 
-MIT。金口诀模块移植自 [look-fate/liuren-ts-lib](https://github.com/look-fate/liuren-ts-lib) v1.9（Apache-2.0），出处见源码头注释。
+本应用代码 MIT。金口诀模块移植自 [look-fate/liuren-ts-lib](https://github.com/look-fate/liuren-ts-lib) v1.9（Apache-2.0），出处见源码头注释。
+依赖的典籍语料库 [lrdq-ts-lib](https://github.com/hackninety/lrdq-ts-lib) 自 v0.8.0 起为 **CC BY-NC 4.0（禁止商用）**——古籍原文公有领域，在版权期今注（如《六壬指南注解》張洪注）署名收录、权利人异议即撤。
