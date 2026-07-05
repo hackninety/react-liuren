@@ -120,7 +120,7 @@ function liuRenToMd(c: LiuRenChart): string {
     | { no: number; name: string; fu: string; certainty: string; why: string }[]
     | undefined;
   if (bifaHits?.length) {
-    L.push('## 毕法命中（《畢法賦》首批检测 23/100）');
+    L.push('## 毕法命中（《畢法賦》97/100 法检测）');
     for (const h of bifaHits) {
       L.push(`- 第${h.no}法 ${h.fu}（${h.certainty === 'exact' ? '确判' : '近似'}）— ${h.why}`);
     }

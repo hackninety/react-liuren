@@ -95,11 +95,11 @@ describe('毕法赋插件', () => {
 
   it('无命中时返回 undefined（不写入 extras）', () => {
     const chart = fakeChart('丙午 甲午 乙丑 甲子', '午');
-    // 午申丑：无递生/递克/连茹/纯阴阳等任何毕法关系
+    // 午丑子：乙日金不入盘（无鬼亦无制鬼），无传墓/连茹/三合/胎财等毕法关系
     chart.sanChuan = {
       chu: { zhi: '午', tianJiang: '' },
-      zhong: { zhi: '申', tianJiang: '' },
-      mo: { zhi: '丑', tianJiang: '' },
+      zhong: { zhi: '丑', tianJiang: '' },
+      mo: { zhi: '子', tianJiang: '' },
       keTi: '',
     };
     expect(bifaPlugin.compute(chart)).toBeUndefined();

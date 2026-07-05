@@ -88,7 +88,7 @@ describe('chartToMarkdown · 大六壬（含古法 extras）', () => {
     expect(md).toContain('- 原文锚点：senji02、senji26');
   });
   it('毕法命中段落', () => {
-    expect(md).toContain('## 毕法命中（《畢法賦》首批检测 23/100）');
+    expect(md).toContain('## 毕法命中（《畢法賦》97/100 法检测）');
     expect(md).toContain('- 第7法 旺祿臨身徒妄作（确判）— 日祿寅臨干上');
     expect(md).toContain('- 第32法 三傳互克眾人欺（近似）— 初克中、中克末');
   });

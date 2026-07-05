@@ -276,11 +276,11 @@ export function SanChuanPanel({ sanChuan, ketiDetail, compares = [], extras }: S
         </div>
       )}
 
-      {/* 毕法赋命中（《六壬大全》卷十一/十二，首批 23/100 法） */}
+      {/* 毕法赋命中（《六壬大全》卷十一/十二，97/100 法机器检测） */}
       {bifaHits.length > 0 && (
         <div className="rounded-lg bg-secondary/10 border border-border/30 px-3 py-2 space-y-2">
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-muted-foreground">毕法命中（首批检测 23/100）：</span>
+            <span className="text-muted-foreground">毕法命中（检测 97/100）：</span>
             {bifaHits.map((h) => (
               <span
                 key={h.no}
