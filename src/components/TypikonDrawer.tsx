@@ -3,7 +3,8 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { X, BookOpen } from 'lucide-react';
 import * as zslj from 'zslj-ts-lib';
-import * as lrdq from 'lrdq-ts-lib';
+// lrdq 典籍走子入口：全书文本只随本抽屉的懒加载 chunk 拉取，不进主包
+import * as lrdq from 'lrdq-ts-lib/docs';
 import { cn } from '@/utils/cn';
 
 interface TypikonDrawerProps {

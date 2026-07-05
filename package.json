@@ -15,7 +15,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.36.0",
     "liuren-ts-lib": "^3.0.0",
-    "lrdq-ts-lib": "file:../lrdq-ts-lib",
+    "lrdq-ts-lib": "github:hackninety/lrdq-ts-lib#v0.2.0",
     "lucide-react": "^0.577.0",
     "lunar-javascript": "^1.2.26",
     "mingyu-core": "^0.1.8",
