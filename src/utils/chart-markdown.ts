@@ -91,11 +91,40 @@ function liuRenToMd(c: LiuRenChart): string {
   L.push(chuanLine('末传', c.sanChuan.mo));
   L.push('');
 
+  // 多派三传对照（App 起盘时用其余流派引擎对同一输入重排，写入 extras）
+  const compares = c.extras['sanchuan-compare'] as
+    | { school: string; chu: string; zhong: string; mo: string }[]
+    | undefined;
+  if (compares?.length) {
+    L.push('## 多派三传对照');
+    const cur = c.sanChuan;
+    L.push(`- 本盘（${c.meta.school}）：${cur.chu.zhi || '—'} → ${cur.zhong.zhi || '—'} → ${cur.mo.zhi || '—'}`);
+    let diff = false;
+    for (const cp of compares) {
+      const same = cp.chu === cur.chu.zhi && cp.zhong === cur.zhong.zhi && cp.mo === cur.mo.zhi;
+      if (!same) diff = true;
+      L.push(`- ${cp.school}：${cp.chu || '—'} → ${cp.zhong || '—'} → ${cp.mo || '—'}（${same ? '与本盘一致' : '与本盘有异'}）`);
+    }
+    if (diff) L.push('- 注：流派差异源于贵人起法、涉害深浅、月将换将时机等古今规则不同，断课须说明取舍');
+    L.push('');
+  }
+
   // 关系摘要（机器核算的生克刑冲事实，供 AI 直接采用、免自算五行）
   const rel = buildRelationLines(c);
   if (rel.length) {
     L.push('## 关系摘要（机器核算）');
     for (const r of rel) L.push(`- ${r}`);
+    L.push('');
+  }
+
+  // 应期候选（ying-qi 插件：机器可算的候选支与来由，取舍留给断者/AI）
+  const yingQi = c.extras['ying-qi'] as
+    | { candidates: { zhi: string; reasons: string[] }[]; notes: string[] }
+    | undefined;
+  if (yingQi?.candidates.length) {
+    L.push('## 应期候选（机器可算）');
+    for (const cd of yingQi.candidates) L.push(`- ${cd.zhi}：${cd.reasons.join('；')}`);
+    for (const n of yingQi.notes) L.push(`- 注：${n}`);
     L.push('');
   }
 

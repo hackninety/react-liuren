@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Copy, Check, Download, FileJson, FileText, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { chartToMarkdown } from '@/utils/chart-markdown';
-import { ZHANSHI_TOPICS, sliceDocSection } from '@/utils/zhanshi-topics';
+import { ZHANSHI_TOPICS, sliceDocSection, zhanShiCaseChapters } from '@/utils/zhanshi-topics';
 
 interface JsonExportPanelProps {
   data: unknown;
@@ -205,10 +205,34 @@ export function JsonExportPanel({ data, title = '排盘数据' }: JsonExportPane
     const topicLine = topic.id === 'general' ? '' : `占事：${topic.label}。`;
     const refBlock = refText ? `\n【占事典籍章节】\n${refText}\n` : '';
 
-    // 引擎自带 AI 提示词优先（如占事略決古法「依经断课」），前缀占事、后附章节
+    // 相似占例检索（lrdq-ts-lib/cases 惰性拉取）：按占事章/课体/日干支/旬空加权，
+    // top-2 作 few-shot 范例附文（含课式盘图与断验原文），失败不阻断
+    let caseText = '';
+    const names = liuRenNames(data);
+    if (names.length) {
+      try {
+        const cs = await import('lrdq-ts-lib/cases');
+        const di = (data as { dateInfo?: { bazi?: string; kongWang?: string[] } }).dateInfo;
+        const hits = cs.findSimilarCases({
+          keti: names,
+          day: di?.bazi?.split(' ')[2],
+          chapters: zhanShiCaseChapters(topic),
+          kong: di?.kongWang,
+          limit: 2,
+        });
+        caseText = hits
+          .map((h) => `▶ ${cs.zhanLiLabel(h.entry)}（相似点：${h.why.join('、')}）\n${h.entry.text}`)
+          .join('\n\n');
+      } catch {
+        // 占例附文失败时仍输出盘面 Prompt
+      }
+    }
+    const caseBlock = caseText ? `\n【相似占例（《六壬指南注解》卷三）】\n${caseText}\n` : '';
+
+    // 引擎自带 AI 提示词优先（如占事略決古法「依经断课」），前缀占事、后附章节与占例
     const engineAiPrompt = (data as { extras?: { aiPrompt?: unknown } })?.extras?.aiPrompt;
     if (typeof engineAiPrompt === 'string' && engineAiPrompt) {
-      copy(`${topicLine ? `${topicLine}\n\n` : ''}${engineAiPrompt}${refBlock}`, 'prompt');
+      copy(`${topicLine ? `${topicLine}\n\n` : ''}${engineAiPrompt}${refBlock}${caseBlock}`, 'prompt');
       return;
     }
     const meta = (data as { meta?: { school?: string; engineName?: string } })?.meta;
@@ -219,11 +243,12 @@ export function JsonExportPanel({ data, title = '排盘数据' }: JsonExportPane
 2. 识格局：解读课体与「毕法命中」，以赋句、课体原文引为据；
 3. 论生克：直接采用「关系摘要（机器核算）」的结论，不要自行另算五行生克；
 4. 参神煞：以入课传者为要，兼看「大全神煞」课传各位当月吉凶神；
-5. 定应期：从三传六合、对冲、旬空填实、驿马丁马等给出候选应期并说明理由；
-6. 结论：分【断】与【据】两部分总结。若「三传对照」显示流派差异，须说明取舍。
+5. 定应期：以「应期候选（机器可算）」为候选池，结合占事与类神旺衰择取并说明理由；
+6. 结论：分【断】与【据】两部分总结。若「多派三传对照」显示流派差异，须说明取舍。
+若附有【相似占例】，参照其断法思路与应验结果类比推理，并点明本盘与例盘的异同。
 
 【盘面】
-${mdStr}${refBlock}`;
+${mdStr}${refBlock}${caseBlock}`;
     copy(prompt, 'prompt');
   };
 

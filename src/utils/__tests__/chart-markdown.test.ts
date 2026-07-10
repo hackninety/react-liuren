@@ -70,6 +70,17 @@ function makeLiuRen(): LiuRenChart {
         { kind: '月将', name: '大吉', zhi: '丑', brief: '所主田土、爭訟事。\n類為長者、僧道。' },
         { kind: '天将', name: '青龍', brief: '青龍甲寅木，吉将也。' },
       ],
+      'sanchuan-compare': [
+        { school: '通行体系', chu: '寅', zhong: '巳', mo: '申' },
+        { school: '大全体系', chu: '卯', zhong: '午', mo: '酉' },
+      ],
+      'ying-qi': {
+        candidates: [
+          { zhi: '寅', reasons: ['初传寅值日', '冲末传申'] },
+          { zhi: '亥', reasons: ['合初传寅', '旬空亥出空填实'] },
+        ],
+        notes: ['三传寅巳申刑全（示例注）'],
+      },
     },
     raw: null,
   };
@@ -140,6 +151,19 @@ describe('chartToMarkdown · 大六壬（含古法 extras）', () => {
     expect(md).toContain('### 大吉（月将·丑）');
     expect(md).toContain('所主田土、爭訟事。');
     expect(md).toContain('### 青龍（天将）');
+  });
+  it('多派三传对照段落（一致/有异标注 + 差异注）', () => {
+    expect(md).toContain('## 多派三传对照');
+    expect(md).toContain('- 本盘（占事略決古法）：寅 → 巳 → 申');
+    expect(md).toContain('- 通行体系：寅 → 巳 → 申（与本盘一致）');
+    expect(md).toContain('- 大全体系：卯 → 午 → 酉（与本盘有异）');
+    expect(md).toContain('- 注：流派差异源于贵人起法、涉害深浅');
+  });
+  it('应期候选段落（候选支 + 来由 + 注）', () => {
+    expect(md).toContain('## 应期候选（机器可算）');
+    expect(md).toContain('- 寅：初传寅值日；冲末传申');
+    expect(md).toContain('- 亥：合初传寅；旬空亥出空填实');
+    expect(md).toContain('- 注：三传寅巳申刑全（示例注）');
   });
 });
 

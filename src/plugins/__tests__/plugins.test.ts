@@ -4,6 +4,7 @@ import { classifySubTypes, ketiDetailPlugin } from '../keti-detail';
 import { xingNianGanZhi, yearGanZhi } from '../xingnian';
 import { bifaPlugin } from '../bifa';
 import { dqShenShaPlugin, type DqShenShaResult } from '../dq-shensha';
+import { yingQiPlugin, type YingQiResult } from '../ying-qi';
 import { PLUGINS } from '../index';
 import type { LiuRenChart } from '../../engines/types';
 
@@ -133,9 +134,68 @@ describe('大全神煞插件', () => {
     expect(r.gongYue.find((g) => g.zhi === '申')?.pos).toBe('支上·末传');
   });
 
-  it('已注册于 PLUGINS（7 插件）', () => {
+  it('已注册于 PLUGINS（8 插件）', () => {
     expect(PLUGINS.some((p) => p.id === 'dq-shensha')).toBe(true);
-    expect(PLUGINS).toHaveLength(7);
+    expect(PLUGINS).toHaveLength(8);
+  });
+});
+
+describe('应期候选插件', () => {
+  it('初末传值日/合/冲 + 旬空填实冲实 + 驿马（庚午日寅巳申金标）', () => {
+    const chart = fakeChart('甲辰 丙子 庚午 庚辰', '申');
+    chart.dateInfo.kongWang = ['戌', '亥'];
+    chart.dateInfo.yiMa = '申';
+    chart.sanChuan = {
+      chu: { zhi: '寅', tianJiang: '' },
+      zhong: { zhi: '巳', tianJiang: '' },
+      mo: { zhi: '申', tianJiang: '' },
+      keTi: '',
+    };
+    const r = yingQiPlugin.compute(chart) as YingQiResult;
+    const of = (z: string) => r.candidates.find((c) => c.zhi === z)?.reasons ?? [];
+    expect(of('寅')).toContain('初传寅值日');
+    expect(of('寅')).toContain('冲末传申');
+    expect(of('亥')).toContain('合初传寅');
+    expect(of('亥')).toContain('旬空亥出空填实');
+    expect(of('申')).toEqual(expect.arrayContaining(['末传申值日（事之归结）', '冲初传寅', '驿马动']));
+    expect(of('辰')).toContain('冲实旬空戌');
+    // 寅巳申无三合局
+    expect(r.notes).toEqual([]);
+  });
+
+  it('三合虚一待用与全局', () => {
+    const chart = fakeChart('甲辰 丙子 甲子 庚辰', '寅');
+    chart.sanChuan = {
+      chu: { zhi: '申', tianJiang: '' },
+      zhong: { zhi: '子', tianJiang: '' },
+      mo: { zhi: '午', tianJiang: '' },
+      keTi: '',
+    };
+    const r = yingQiPlugin.compute(chart) as YingQiResult;
+    expect(r.candidates.find((c) => c.zhi === '辰')?.reasons.join()).toContain('虚一待用');
+    chart.sanChuan.mo.zhi = '辰';
+    const r2 = yingQiPlugin.compute(chart) as YingQiResult;
+    expect(r2.notes.join()).toContain('成水局');
+  });
+
+  it('日干墓为初传时给出冲开候选', () => {
+    // 甲=木，墓未；初传未 → 候选丑（冲开）
+    const chart = fakeChart('甲辰 丙子 甲子 庚辰', '未');
+    chart.sanChuan = {
+      chu: { zhi: '未', tianJiang: '' },
+      zhong: { zhi: '卯', tianJiang: '' },
+      mo: { zhi: '亥', tianJiang: '' },
+      keTi: '',
+    };
+    const r = yingQiPlugin.compute(chart) as YingQiResult;
+    expect(r.candidates.find((c) => c.zhi === '丑')?.reasons.join()).toContain('冲开初传未（日干甲之墓）');
+    // 亥卯未全局注
+    expect(r.notes.join()).toContain('成木局');
+  });
+
+  it('三传缺失时不产出（返回 undefined）', () => {
+    const chart = fakeChart('甲辰 丙子 甲子 庚辰', '寅');
+    expect(yingQiPlugin.compute(chart)).toBeUndefined();
   });
 });
 

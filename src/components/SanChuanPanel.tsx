@@ -75,6 +75,17 @@ function readBifaHits(extras?: Record<string, unknown>): BifaHitView[] {
   );
 }
 
+/** 应期候选，来自 chart.extras['ying-qi']（ying-qi 插件） */
+interface YingQiView {
+  candidates: { zhi: string; reasons: string[] }[];
+  notes: string[];
+}
+
+function readYingQi(extras?: Record<string, unknown>): YingQiView | null {
+  const v = extras?.['ying-qi'] as YingQiView | undefined;
+  return v && Array.isArray(v.candidates) && v.candidates.length ? v : null;
+}
+
 /**
  * 三传展示面板
  */
@@ -87,6 +98,7 @@ export function SanChuanPanel({ sanChuan, ketiDetail, compares = [], extras }: S
   const guFaGua = readGuFaGua(extras);
   const guFaRefs = readGuFaRefs(extras);
   const bifaHits = readBifaHits(extras);
+  const yingQi = readYingQi(extras);
   const keJingNames = [sanChuan.keTi, sanChuan.method, ...(ketiDetail?.subTypes ?? [])].filter(
     (n): n is string => !!n,
   );
@@ -228,6 +240,33 @@ export function SanChuanPanel({ sanChuan, ketiDetail, compares = [], extras }: S
               ) : (
                 <span className="text-amber-400">⚠ 与当前有别</span>
               )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 应期候选（ying-qi 插件：机器可算候选支，悬停看来由） */}
+      {yingQi && (
+        <div className="rounded-lg bg-secondary/10 border border-border/30 px-3 py-2 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-muted-foreground">应期候选（机器可算）：</span>
+            {yingQi.candidates.map((cd) => (
+              <span
+                key={cd.zhi}
+                title={cd.reasons.join('；')}
+                className={cn(
+                  'px-2 py-0.5 rounded-full border font-serif cursor-help bg-secondary/40 border-border/30',
+                  getWuxingColorClass(cd.zhi),
+                )}
+              >
+                {cd.zhi}
+              </span>
+            ))}
+            <span className="text-muted-foreground/60">悬停看来由，取舍结合占事与类神旺衰</span>
+          </div>
+          {yingQi.notes.map((n) => (
+            <div key={n} className="text-xs text-muted-foreground">
+              注：{n}
             </div>
           ))}
         </div>

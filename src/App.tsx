@@ -113,7 +113,9 @@ function computeInitialState() {
   const engId = loadEngineId();
   try {
     const { chart, notice } = computeChart(input, engId, {});
-    return { input, engId, chart, notice, compare: buildCompare(input, engId) };
+    const compare = buildCompare(input, engId);
+    if (compare.length) chart.extras['sanchuan-compare'] = compare; // 随 MD/JSON 导出
+    return { input, engId, chart, notice, compare };
   } catch (error) {
     console.error('大六壬排盘失败:', error);
     return { input, engId, chart: null, notice: null, compare: [] as SanChuanCompare[] };
@@ -155,9 +157,11 @@ function App() {
   const recalc = useCallback((input: ChartInput, engId: DaLiuRenEngineId, ctx: PluginContext) => {
     try {
       const { chart, notice } = computeChart(input, engId, ctx);
+      const compare = buildCompare(input, engId);
+      if (compare.length) chart.extras['sanchuan-compare'] = compare; // 随 MD/JSON 导出
       setLiuRenChart(chart);
       setEngineNotice(notice);
-      setCompareChuan(buildCompare(input, engId));
+      setCompareChuan(compare);
       setLastInput(input);
       if (input.kind === 'date') {
         setSelectedDate(input.date);

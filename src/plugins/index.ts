@@ -13,6 +13,7 @@ import { shenShaExtraPlugin } from './shensha-extra';
 import { dqShenShaPlugin } from './dq-shensha';
 import { xingNianPlugin } from './xingnian';
 import { bifaPlugin } from './bifa';
+import { yingQiPlugin } from './ying-qi';
 
 export const PLUGINS: LiuRenPlugin[] = [
   ketiDetailPlugin,
@@ -22,6 +23,7 @@ export const PLUGINS: LiuRenPlugin[] = [
   dqShenShaPlugin,
   xingNianPlugin,
   bifaPlugin,
+  yingQiPlugin,
 ];
 
 const STORAGE_KEY = 'liuren-disabled-plugins';

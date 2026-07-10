@@ -17,6 +17,11 @@ export interface ZhanShiTopic {
   id: string;
   label: string;
   refs: ZhanShiRef[];
+  /**
+   * 相似占例检索的补充章名（lrdq-ts-lib/cases entry.chapter）：
+   * 断法附文之外还藏占例的卷三章（如鄉試/章奏之于仕宦）。
+   */
+  caseChapters?: string[];
 }
 
 const ZN3 = 'lrzn/book/juan03.md';
@@ -42,6 +47,7 @@ export const ZHANSHI_TOPICS: ZhanShiTopic[] = [
   {
     id: 'shihuan', label: '仕宦/选举',
     refs: [{ path: ZN3, section: '仕宦章第十五' }, { path: ZN3, section: '選舉章第十三' }, { path: XJ6, section: '官職門' }],
+    caseChapters: ['鄉試章又第十三', '武舉章第十四', '章奏章第二十八'],
   },
   {
     id: 'qiucai', label: '求财/交易',
@@ -66,16 +72,26 @@ export const ZHANSHI_TOPICS: ZhanShiTopic[] = [
   {
     id: 'zhaiju', label: '宅居/迁移',
     refs: [{ path: ZN3, section: '陽宅章第三' }, { path: ZN3, section: '遷移章第五' }, { path: XJ5, section: '占宅門' }],
+    caseChapters: ['陰地章第四'],
   },
   {
     id: 'tianshi', label: '天时',
     refs: [{ path: ZN3, section: '天時章第二' }, { path: XJ7, section: '天時門' }],
+    caseChapters: ['應候章第二十四'],
   },
   {
     id: 'bingzhan', label: '兵占/争斗',
     refs: [{ path: ZN3, section: '兵鬥章第二十九' }, { path: XJ8, section: '兵占門' }],
   },
 ];
+
+/** 占事的相似占例检索章名（卷三断法章 + 占例补充章） */
+export function zhanShiCaseChapters(topic: ZhanShiTopic): string[] {
+  return [
+    ...topic.refs.filter((r) => r.path === ZN3).map((r) => r.section),
+    ...(topic.caseChapters ?? []),
+  ];
+}
 
 /**
  * 从生成文档 markdown 中切出某 `## 节` 的正文（含节题行）。
