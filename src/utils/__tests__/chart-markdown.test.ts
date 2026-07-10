@@ -66,6 +66,10 @@ function makeLiuRen(): LiuRenChart {
         { name: '元首', book: '六壬大全', juan: 7, order: 1, text: '凡一上克下，餘課無克，為元首課，象天。' },
         { name: '元首', book: '六壬心鏡', juan: 1, order: 80, text: '一上克下為元首。' },
       ],
+      leishen: [
+        { kind: '月将', name: '大吉', zhi: '丑', brief: '所主田土、爭訟事。\n類為長者、僧道。' },
+        { kind: '天将', name: '青龍', brief: '青龍甲寅木，吉将也。' },
+      ],
     },
     raw: null,
   };
@@ -119,6 +123,23 @@ describe('chartToMarkdown · 大六壬（含古法 extras）', () => {
     expect(md).toContain('### 元首（《六壬大全》卷7）');
     expect(md).toContain('### 元首（《六壬心鏡》卷1）');
     expect(md).toContain('凡一上克下，餘課無克');
+  });
+  it('关系摘要段落（机器核算生克刑冲）', () => {
+    // 庚午日：干上申金比和且为日禄/寄宫；支上寅木生午火；寅申冲刑；三传寅巳申
+    expect(md).toContain('## 关系摘要（机器核算）');
+    expect(md).toContain('- 干上申（金）与日干庚比和；申为日禄、干寄宫');
+    expect(md).toContain('- 支上寅（木）生日支午（生我者）');
+    expect(md).toContain('- 干上申与支上寅：相冲、相刑');
+    expect(md).toContain('- 初传寅生中传巳（兼相刑、相害）');
+    expect(md).toContain('- 中传巳克末传申（兼六合、相刑、相破）');
+    expect(md).toContain('- 末传申（金）克所乘青龙（木）——内战');
+    expect(md).toContain('- 旬空戌、亥未入课传');
+  });
+  it('类神段落（神將釋 brief）', () => {
+    expect(md).toContain('## 类神（《六壬大全》卷二神將釋）');
+    expect(md).toContain('### 大吉（月将·丑）');
+    expect(md).toContain('所主田土、爭訟事。');
+    expect(md).toContain('### 青龍（天将）');
   });
 });
 

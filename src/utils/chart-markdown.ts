@@ -12,6 +12,7 @@ import type {
 } from '@/engines/types';
 import type { KetiDetailResult } from '@/plugins/keti-detail';
 import type { XingNianResult } from '@/plugins/xingnian';
+import { buildRelationLines } from './wuxing-relations';
 
 /** 全角空格（用转义避免 no-irregular-whitespace） */
 const FW = '　';
@@ -90,6 +91,14 @@ function liuRenToMd(c: LiuRenChart): string {
   L.push(chuanLine('末传', c.sanChuan.mo));
   L.push('');
 
+  // 关系摘要（机器核算的生克刑冲事实，供 AI 直接采用、免自算五行）
+  const rel = buildRelationLines(c);
+  if (rel.length) {
+    L.push('## 关系摘要（机器核算）');
+    for (const r of rel) L.push(`- ${r}`);
+    L.push('');
+  }
+
   // 神煞
   if (c.shenSha.length) {
     L.push('## 神煞');
@@ -149,6 +158,17 @@ function liuRenToMd(c: LiuRenChart): string {
     }
     L.push(`- 神煞落支全表 ${dqss.table.length} 条见 JSON extras["dq-shensha"]`);
     L.push('');
+  }
+
+  // 类神（导出面板异步补挂 extras.leishen：《神將釋》brief 原行）
+  const leishen = c.extras.leishen as
+    | { kind: string; name: string; zhi?: string; brief: string }[]
+    | undefined;
+  if (leishen?.length) {
+    L.push('## 类神（《六壬大全》卷二神將釋）');
+    for (const e of leishen) {
+      L.push(`### ${e.name}（${e.kind}${e.zhi ? `·${e.zhi}` : ''}）`, '', e.brief, '');
+    }
   }
 
   // 古法（占事略決）
