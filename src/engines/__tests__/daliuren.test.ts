@@ -55,6 +55,24 @@ describe('mingyu 引擎（mingyu-core 适配）', () => {
   });
 });
 
+describe('mingyu 时区口径（跟随本地时区，不锁北京时间）', () => {
+  it('UTC / 东京 / 纽约环境下与 lookfate 四柱一致（同一本地墙上时间）', () => {
+    const orig = process.env.TZ;
+    try {
+      for (const tz of ['UTC', 'Asia/Tokyo', 'America/New_York']) {
+        process.env.TZ = tz;
+        const date = new Date(2026, 6, 4, 10, 30); // 各时区本地 2026-07-04 10:30（巳时）
+        const bazi = mingyuDaLiuRen.byDate(date).dateInfo.bazi;
+        expect(bazi, `TZ=${tz} 应与 lookfate 一致`).toBe(lookfateDaLiuRen.byDate(date).dateInfo.bazi);
+        expect(bazi, `TZ=${tz} 时柱应为巳时`).toBe('丙午 甲午 己卯 己巳');
+      }
+    } finally {
+      if (orig === undefined) delete process.env.TZ;
+      else process.env.TZ = orig;
+    }
+  });
+});
+
 describe('zslj 引擎（占事略決古法适配）', () => {
   it('日期起课：统一模型结构完整', () => {
     const chart = zsljDaLiuRen.byDate(new Date('2025-01-01T08:00:00'));

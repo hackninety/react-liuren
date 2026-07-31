@@ -5,6 +5,7 @@
  * 课体标签、天将全属性。限制：仅支持日期起课（无四柱直输）、
  * 神煞为汇总级。
  */
+import '../mingyu-setup'; // 时区口径：跟随本地时区（勿锁北京时间）
 import { generateLiuren } from 'mingyu-core/divination/liuren';
 import type {
   LiurenData,

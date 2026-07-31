@@ -4,6 +4,7 @@
  * 上游以月/日/时三数逐宫顺数定三宫（起因→过程→结果），
  * 输出三宫叙事、五行生克关系、旺衰与应期。
  */
+import '../mingyu-setup'; // 时区口径：跟随本地时区（勿锁北京时间）
 import { generateXiaoliuren } from 'mingyu-core/divination/xiaoliuren';
 import type { XiaoliurenData, XiaoliurenPalaceDetail } from 'mingyu-core/types';
 import type {
