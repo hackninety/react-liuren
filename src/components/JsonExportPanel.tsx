@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Check, Download, FileJson, FileText, Sparkles } from 'lucide-react';
+import { Bot, Check, Copy, Download, FileText, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { chartToMarkdown } from '@/utils/chart-markdown';
 import { ZHANSHI_TOPICS, sliceDocSection, zhanShiCaseChapters } from '@/utils/zhanshi-topics';
@@ -8,10 +8,18 @@ import { ZHANSHI_TOPICS, sliceDocSection, zhanShiCaseChapters } from '@/utils/zh
 interface JsonExportPanelProps {
   data: unknown;
   title?: string;
+  /** 入场动画延迟（沿用各页原有节奏） */
+  delay?: number;
 }
 
 /** 剔除 extras.aiPrompt（长提示词，已有专用按钮，避免污染数据视图/文件） */
 const jsonReplacer = (key: string, value: unknown) => (key === 'aiPrompt' ? undefined : value);
+
+/** 预估文件大小（UTF-8 字节数，与下载落盘一致；口径同 react-8char） */
+function formatSize(text: string): string {
+  const kb = new TextEncoder().encode(text).length / 1024;
+  return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb.toFixed(1)} KB`;
+}
 
 interface KeJingLike {
   name: string;
@@ -57,14 +65,13 @@ function liuRenNames(d: unknown): string[] {
 }
 
 /**
- * 数据导出 & AI 分析面板
+ * 数据导出 & AI 分析面板（版式对齐 react-8char，配色沿用本站金色系）
  * 支持 JSON / Markdown 双格式：复制或导出文件（MD 更紧凑省 token，AI 可直接阅读），
  * 两者均完整记录全盘信息。大六壬盘导出前异步补挂 extras.kejing
  * （課經/心鏡课体原文引，lrdq-ts-lib/keju 惰性拉取），MD/JSON/AI Prompt 均携带。
  */
-export function JsonExportPanel({ data, title = '排盘数据' }: JsonExportPanelProps) {
+export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: JsonExportPanelProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
   const [format, setFormat] = useState<'md' | 'json'>('md');
   const [kejing, setKejing] = useState<{ src: unknown; entries: KeJingLike[] } | null>(null);
   const [leishen, setLeishen] = useState<{ src: unknown; entries: LeiShenLike[] } | null>(null);
@@ -143,6 +150,8 @@ export function JsonExportPanel({ data, title = '排盘数据' }: JsonExportPane
     [exportData],
   );
   const mdStr = useMemo(() => (exportData ? chartToMarkdown(exportData) : ''), [exportData]);
+  const mdSize = useMemo(() => formatSize(mdStr), [mdStr]);
+  const jsonSize = useMemo(() => formatSize(jsonStr), [jsonStr]);
 
   if (!data) return null;
 
@@ -254,86 +263,109 @@ ${mdStr}${refBlock}${caseBlock}`;
 
   const previewText = format === 'md' ? mdStr : jsonStr;
 
-  const btn = (key: string, label: string, icon: React.ReactNode, onClick: () => void, gold = false) => (
+  /** 通用操作按钮：primary 为金色渐变主按钮（对位 8char 的 crimson-gradient），否则金色描边 */
+  const btn = (key: string, label: string, icon: React.ReactNode, onClick: () => void, primary = false) => (
     <button
       onClick={onClick}
       className={cn(
-        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors border',
-        gold
-          ? 'bg-[var(--color-gold)]/10 hover:bg-[var(--color-gold)]/20 text-[var(--color-gold)] border-[var(--color-gold)]/20'
-          : 'bg-secondary/50 hover:bg-secondary border-transparent',
+        'flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-all border cursor-pointer',
+        primary
+          ? 'border-transparent bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-dark)] text-primary-foreground font-medium hover:opacity-90 shadow-md shadow-[var(--color-gold)]/20'
+          : 'border-[var(--color-gold)]/30 hover:bg-[var(--color-gold)]/5 text-foreground',
       )}
     >
-      {copiedKey === key ? <Check className="w-3.5 h-3.5 text-green-400" /> : icon}
+      {copiedKey === key ? <Check className="w-4 h-4" /> : icon}
       <span>{copiedKey === key ? '已完成' : label}</span>
     </button>
   );
 
   return (
-    <div className="space-y-3">
-      {/* 预览区（可切换 MD / JSON） */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <FileText className="w-4 h-4" />
-          <span>{expanded ? '收起' : '预览'} {title} 数据</span>
-        </button>
-        {expanded && (
-          <div className="flex gap-1 p-0.5 bg-secondary/40 rounded-lg text-xs">
-            {(['md', 'json'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFormat(f)}
-                className={cn(
-                  'px-2 py-0.5 rounded-md transition-colors',
-                  format === f ? 'bg-card text-foreground font-medium shadow-sm' : 'text-muted-foreground',
-                )}
-              >
-                {f === 'md' ? 'Markdown' : 'JSON'}
-              </button>
-            ))}
+    <motion.div
+      className="glass-card glow-gold rounded-xl p-4"
+      style={{ borderColor: 'rgba(212, 175, 55, 0.2)' }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay }}
+    >
+      {/* 标题 + 就绪徽标 */}
+      <h2 className="text-sm font-semibold text-[var(--color-gold)] uppercase tracking-wider flex items-center gap-2">
+        <div className="w-1 h-4 rounded-full bg-[var(--color-gold)]" />
+        <Bot className="w-4 h-4" />
+        数据导出 & AI 分析
+      </h2>
+      {/* 移动端徽标与说明各占一行，避免徽标被挤成两行；sm 起恢复单行 */}
+      <div className="flex flex-col items-start gap-1.5 mt-2 mb-3 sm:flex-row sm:items-center sm:gap-2">
+        <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 bg-green-500/10 px-2 py-1 rounded-full whitespace-nowrap shrink-0">
+          <Sparkles className="w-3 h-3" />
+          已准备好喂 AI
+        </div>
+        <span className="text-[11px] text-muted-foreground">MD 紧凑省 token、AI 可直读；JSON 为全量结构化数据</span>
+      </div>
+
+      <div className="space-y-3">
+        {/* 占事定向（大六壬盘限定；影响 AI Prompt 的焦点与附文章节） */}
+        {liuRenNames(data).length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[var(--color-gold)]" />
+            <span className="text-muted-foreground">AI 占事定向</span>
+            <select
+              value={topicId}
+              onChange={(e) => pickTopic(e.target.value)}
+              className="bg-secondary/50 border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground"
+            >
+              {ZHANSHI_TOPICS.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+            <span className="text-muted-foreground/60">定向后 Prompt 自动附典籍断法章节</span>
           </div>
         )}
-      </div>
 
-      {expanded && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative">
-          <pre className="p-3 rounded-lg bg-secondary/30 text-xs text-muted-foreground overflow-x-auto max-h-[320px] overflow-y-auto font-mono whitespace-pre-wrap">
-            {previewText}
-          </pre>
-        </motion.div>
-      )}
-
-      {/* 占事定向（大六壬盘限定；影响 AI Prompt 的焦点与附文章节） */}
-      {liuRenNames(data).length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <Sparkles className="w-3.5 h-3.5 text-[var(--color-gold)]" />
-          <span className="text-muted-foreground">AI 占事定向</span>
-          <select
-            value={topicId}
-            onChange={(e) => pickTopic(e.target.value)}
-            className="bg-secondary/50 border border-border/30 rounded-lg px-2 py-1 text-xs text-foreground"
-          >
-            {ZHANSHI_TOPICS.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-          <span className="text-muted-foreground/60">定向后 Prompt 自动附典籍断法章节</span>
+        {/* 数据文件 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {btn('dl-md', `导出 MD 文件（${mdSize}）`, <Download className="w-4 h-4" />, () => download(mdStr, 'md'))}
+          {btn('dl-json', `导出 JSON 文件（${jsonSize}）`, <Download className="w-4 h-4" />, () => download(jsonStr, 'json'))}
         </div>
-      )}
 
-      {/* 导出按钮 */}
-      <div className="flex flex-wrap gap-2">
-        {btn('copy-md', '复制 MD', <Copy className="w-3.5 h-3.5" />, () => copy(mdStr, 'copy-md'))}
-        {btn('dl-md', '导出 MD', <Download className="w-3.5 h-3.5" />, () => download(mdStr, 'md'))}
-        {btn('copy-json', '复制 JSON', <FileJson className="w-3.5 h-3.5" />, () => copy(jsonStr, 'copy-json'))}
-        {btn('dl-json', '导出 JSON', <Download className="w-3.5 h-3.5" />, () => download(jsonStr, 'json'))}
-        {btn('prompt', '复制 AI 分析 Prompt', <Sparkles className="w-3.5 h-3.5" />, handleCopyPrompt, true)}
+        {/* 一键喂 AI */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {btn('prompt', '复制 AI 分析 Prompt', <Bot className="w-4 h-4" />, handleCopyPrompt, true)}
+          {btn('copy-md', '复制 MD（纯盘面）', <FileText className="w-4 h-4" />, () => copy(mdStr, 'copy-md'), true)}
+        </div>
+
+        {/* 预览（MD/JSON 切换；复制按钮跟随当前格式，JSON 复制由此进行） */}
+        <div className="rounded-lg bg-secondary/30 p-3">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex gap-1 p-0.5 bg-secondary/40 rounded-lg text-xs">
+              {(['md', 'json'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFormat(f)}
+                  className={cn(
+                    'px-2 py-0.5 rounded-md transition-colors cursor-pointer',
+                    format === f ? 'bg-card text-foreground font-medium shadow-sm' : 'text-muted-foreground',
+                  )}
+                >
+                  {f === 'md' ? 'Markdown' : 'JSON'}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => copy(previewText, 'copy-view')}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              {copiedKey === 'copy-view' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedKey === 'copy-view' ? '已完成' : `复制 ${format === 'md' ? 'MD' : 'JSON'}`}</span>
+            </button>
+          </div>
+          <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-all font-mono leading-relaxed max-h-40 overflow-y-auto">
+            {previewText.slice(0, 2000)}
+            {previewText.length > 2000 ? '...' : ''}
+          </pre>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

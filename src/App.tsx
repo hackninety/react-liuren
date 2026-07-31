@@ -479,21 +479,8 @@ function App() {
                 </motion.div>
               )}
 
-              {/* 数据导出 */}
-              {liuRenChart && (
-                <motion.div
-                  className="glass-card rounded-xl p-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.35 }}
-                >
-                  <h2 className="text-sm font-semibold text-[var(--color-gold)] uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full bg-[var(--color-gold)]" />
-                    数据导出 & AI 分析
-                  </h2>
-                  <JsonExportPanel data={liuRenChart} title="大六壬" />
-                </motion.div>
-              )}
+              {/* 数据导出 & AI 分析（面板自带卡片与标题，版式对齐 react-8char） */}
+              {liuRenChart && <JsonExportPanel data={liuRenChart} title="大六壬" delay={0.35} />}
             </motion.div>
           )}
 
@@ -519,20 +506,7 @@ function App() {
                 <JinKouJuePanel jkjData={jkjData} />
               </motion.div>
 
-              {jkjData && (
-                <motion.div
-                  className="glass-card rounded-xl p-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 }}
-                >
-                  <h2 className="text-sm font-semibold text-[var(--color-gold)] uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full bg-[var(--color-gold)]" />
-                    数据导出 & AI 分析
-                  </h2>
-                  <JsonExportPanel data={jkjData} title="金口诀" />
-                </motion.div>
-              )}
+              {jkjData && <JsonExportPanel data={jkjData} title="金口诀" delay={0.1} />}
             </motion.div>
           )}
 

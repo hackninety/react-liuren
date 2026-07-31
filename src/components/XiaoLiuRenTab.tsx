@@ -177,16 +177,8 @@ export function XiaoLiuRenTab() {
         </div>
       )}
 
-      {/* 数据导出 */}
-      {chart && (
-        <div className="glass-card rounded-xl p-4">
-          <h2 className="text-sm font-semibold text-[var(--color-gold)] uppercase tracking-wider mb-3 flex items-center gap-2">
-            <div className="w-1 h-4 rounded-full bg-[var(--color-gold)]" />
-            数据导出 & AI 分析
-          </h2>
-          <JsonExportPanel data={chart} title="小六壬" />
-        </div>
-      )}
+      {/* 数据导出 & AI 分析（面板自带卡片与标题，版式对齐 react-8char） */}
+      {chart && <JsonExportPanel data={chart} title="小六壬" delay={0.1} />}
     </div>
   );
 }
