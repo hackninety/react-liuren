@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Bot, Check, Copy, Download, FileText, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { chartToMarkdown } from '@/utils/chart-markdown';
+import { chartToToon } from '@/utils/toon';
 import { ZHANSHI_TOPICS, sliceDocSection, zhanShiCaseChapters } from '@/utils/zhanshi-topics';
 
 interface JsonExportPanelProps {
@@ -11,9 +12,6 @@ interface JsonExportPanelProps {
   /** 入场动画延迟（沿用各页原有节奏） */
   delay?: number;
 }
-
-/** 剔除 extras.aiPrompt（长提示词，已有专用按钮，避免污染数据视图/文件） */
-const jsonReplacer = (key: string, value: unknown) => (key === 'aiPrompt' ? undefined : value);
 
 /** 预估文件大小（UTF-8 字节数，与下载落盘一致；口径同 react-8char） */
 function formatSize(text: string): string {
@@ -66,13 +64,14 @@ function liuRenNames(d: unknown): string[] {
 
 /**
  * 数据导出 & AI 分析面板（版式对齐 react-8char，配色沿用本站金色系）
- * 支持 JSON / Markdown 双格式：复制或导出文件（MD 更紧凑省 token，AI 可直接阅读），
+ * 支持 Markdown / TOON 双格式：复制或导出文件（MD 供 AI 直读；TOON 为
+ * 结构化盘面的紧凑无损表示，较 JSON 更省 token），
  * 两者均完整记录全盘信息。大六壬盘导出前异步补挂 extras.kejing
  * （課經/心鏡课体原文引，lrdq-ts-lib/keju 惰性拉取），MD/JSON/AI Prompt 均携带。
  */
 export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: JsonExportPanelProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [format, setFormat] = useState<'md' | 'json'>('md');
+  const [format, setFormat] = useState<'md' | 'toon'>('md');
   const [kejing, setKejing] = useState<{ src: unknown; entries: KeJingLike[] } | null>(null);
   const [leishen, setLeishen] = useState<{ src: unknown; entries: LeiShenLike[] } | null>(null);
   // 占事定向（localStorage 记忆；仅大六壬盘展示）
@@ -145,13 +144,10 @@ export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: J
     return { ...c, extras: { ...c.extras, ...extra } };
   }, [data, kejing, leishen]);
 
-  const jsonStr = useMemo(
-    () => (exportData ? JSON.stringify(exportData, jsonReplacer, 2) : ''),
-    [exportData],
-  );
+  const toonStr = useMemo(() => (exportData ? chartToToon(exportData) : ''), [exportData]);
   const mdStr = useMemo(() => (exportData ? chartToMarkdown(exportData) : ''), [exportData]);
   const mdSize = useMemo(() => formatSize(mdStr), [mdStr]);
-  const jsonSize = useMemo(() => formatSize(jsonStr), [jsonStr]);
+  const toonSize = useMemo(() => formatSize(toonStr), [toonStr]);
 
   if (!data) return null;
 
@@ -174,13 +170,13 @@ export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: J
     flash(key);
   };
 
-  const download = (content: string, ext: 'md' | 'json') => {
+  const download = (content: string, ext: 'md' | 'toon') => {
     const stamp = new Date()
       .toLocaleString('sv-SE')
       .replace(/[- :]/g, '')
       .slice(0, 12); // YYYYMMDDHHmm
     const blob = new Blob([content], {
-      type: (ext === 'md' ? 'text/markdown' : 'application/json') + ';charset=utf-8',
+      type: (ext === 'md' ? 'text/markdown' : 'text/plain') + ';charset=utf-8',
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -254,14 +250,14 @@ export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: J
 4. 参神煞：以入课传者为要，兼看「大全神煞」课传各位当月吉凶神；
 5. 定应期：以「应期候选（机器可算）」为候选池，结合占事与类神旺衰择取并说明理由；
 6. 结论：分【断】与【据】两部分总结。若「多派三传对照」显示流派差异，须说明取舍。
-若附有【相似占例】，参照其断法思路与应验结果类比推理，并点明本盘与例盘的异同。
+若附有【相似占例】，参照其断法思路与应验结果类比推理，并点明本盘与例盘的异同；例盘断验是例盘之果，不得直接迁移为本盘结论。
 
 【盘面】
 ${mdStr}${refBlock}${caseBlock}`;
     copy(prompt, 'prompt');
   };
 
-  const previewText = format === 'md' ? mdStr : jsonStr;
+  const previewText = format === 'md' ? mdStr : toonStr;
 
   /** 通用操作按钮：primary 为金色渐变主按钮（对位 8char 的 crimson-gradient），否则金色描边 */
   const btn = (key: string, label: string, icon: React.ReactNode, onClick: () => void, primary = false) => (
@@ -299,7 +295,7 @@ ${mdStr}${refBlock}${caseBlock}`;
           <Sparkles className="w-3 h-3" />
           已准备好喂 AI
         </div>
-        <span className="text-[11px] text-muted-foreground">MD 紧凑省 token、AI 可直读；JSON 为全量结构化数据</span>
+        <span className="text-[11px] text-muted-foreground">MD 内容最完整、AI 可直读；TOON 为结构化盘面的紧凑无损表示，更省 token</span>
       </div>
 
       <div className="space-y-3">
@@ -326,7 +322,7 @@ ${mdStr}${refBlock}${caseBlock}`;
         {/* 数据文件 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {btn('dl-md', `导出 MD 文件（${mdSize}）`, <Download className="w-4 h-4" />, () => download(mdStr, 'md'))}
-          {btn('dl-json', `导出 JSON 文件（${jsonSize}）`, <Download className="w-4 h-4" />, () => download(jsonStr, 'json'))}
+          {btn('dl-toon', `导出 TOON 文件（${toonSize}）`, <Download className="w-4 h-4" />, () => download(toonStr, 'toon'))}
         </div>
 
         {/* 一键喂 AI */}
@@ -335,11 +331,11 @@ ${mdStr}${refBlock}${caseBlock}`;
           {btn('copy-md', '复制 MD（纯盘面）', <FileText className="w-4 h-4" />, () => copy(mdStr, 'copy-md'), true)}
         </div>
 
-        {/* 预览（MD/JSON 切换；复制按钮跟随当前格式，JSON 复制由此进行） */}
+        {/* 预览（MD/TOON 切换；复制按钮跟随当前格式，TOON 复制由此进行） */}
         <div className="rounded-lg bg-secondary/30 p-3">
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex gap-1 p-0.5 bg-secondary/40 rounded-lg text-xs">
-              {(['md', 'json'] as const).map((f) => (
+              {(['md', 'toon'] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFormat(f)}
@@ -348,7 +344,7 @@ ${mdStr}${refBlock}${caseBlock}`;
                     format === f ? 'bg-card text-foreground font-medium shadow-sm' : 'text-muted-foreground',
                   )}
                 >
-                  {f === 'md' ? 'Markdown' : 'JSON'}
+                  {f === 'md' ? 'Markdown' : 'TOON'}
                 </button>
               ))}
             </div>
@@ -357,7 +353,7 @@ ${mdStr}${refBlock}${caseBlock}`;
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               {copiedKey === 'copy-view' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedKey === 'copy-view' ? '已完成' : `复制 ${format === 'md' ? 'MD' : 'JSON'}`}</span>
+              <span>{copiedKey === 'copy-view' ? '已完成' : `复制 ${format === 'md' ? 'MD' : 'TOON'}`}</span>
             </button>
           </div>
           <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-all font-mono leading-relaxed max-h-40 overflow-y-auto">

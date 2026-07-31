@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@toon-format/toon": "^4.1.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.36.0",
     "liuren-ts-lib": "^3.0.0",

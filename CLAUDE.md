@@ -16,7 +16,7 @@ Claude Code 在本仓库工作时遵循以下约定。
 - `src/engines/`：排盘引擎（registry 注册多流派：大六壬含 liuren-ts-lib、占事略決古法 zslj、mingyu 等）
 - `src/plugins/`：盘面增强插件（毕法、大全神煞、应期、课体细分、行年等，结果写入 `chart.extras`）
 - `src/utils/chart-markdown.ts`：盘面 → Markdown 序列化（AI 导出主格式，金标测试锁版式）
-- `src/components/JsonExportPanel.tsx`：「数据导出 & AI 分析」面板（MD / JSON / AI Prompt，版式对齐 react-8char）
+- `src/components/JsonExportPanel.tsx`：「数据导出 & AI 分析」面板（MD / TOON / AI Prompt，版式对齐 react-8char）
 - 典籍资料（课体原文、类神、断法章节、占例）由 `lrdq-ts-lib` 子路径惰性加载
 
 ## 常用命令
