@@ -127,7 +127,8 @@ describe('chartToMarkdown · 大六壬（含古法 extras）', () => {
     expect(md).toContain('- 入课传：日祿申（十天干神煞）');
     expect(md).toContain('- 干上·末传申：吉 驛馬 信神；凶 月破');
     expect(md).toContain('- 初传寅：吉 皇書');
-    expect(md).toContain('全表 2 条见 JSON');
+    // 「全表见 JSON」指引已删：复制 MD 给 AI 的场景并无 JSON，会诱导 AI 申报数据缺失
+    expect(md).not.toContain('见 JSON');
   });
   it('课体原文引段落（两书互证）', () => {
     expect(md).toContain('## 课体原文引（《六壬大全·課經》《六壬心鏡》）');

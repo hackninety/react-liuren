@@ -185,7 +185,6 @@ function liuRenToMd(c: LiuRenChart): string {
       if (g.xiong.length) parts.push(`凶 ${g.xiong.join(' ')}`);
       L.push(`- ${g.pos}${g.zhi}：${parts.join('；') || '—'}`);
     }
-    L.push(`- 神煞落支全表 ${dqss.table.length} 条见 JSON extras["dq-shensha"]`);
     L.push('');
   }
 
