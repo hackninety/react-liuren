@@ -31,8 +31,8 @@
 |------|------|------|
 | [liuren-ts-lib](https://github.com/look-fate/liuren-ts-lib) v3 | 大六壬（默认）、流年、历法 | 通行体系 |
 | [mingyu-core](https://github.com/Brhiza/mingyu) | 大六壬（第二引擎） | 《大六壬大全》体系 |
-| [zslj-ts-lib](https://github.com/hackninety/zslj-ts-lib) | 大六壬（第三引擎） | 安倍晴明《占事略決》古法（983 年）：涉害孟仲季、旦暮贵人寅酉界、課用九法、卅六卦课体，附原文锚点与「依经断课」AI 提示词 |
-| [lrdq-ts-lib](https://github.com/hackninety/lrdq-ts-lib) | 毕法命中插件 + 典籍 | 《六壬大全》全书典籍（四庫全書本十三篇，`lrdq-ts-lib/docs` 子入口随典籍抽屉懒加载）；《畢法賦》百法语料，97/100 法机器命中（exact/approx 分级；第93/97/98法为校勘/方法论不设机判） |
+| [zslj-ts-lib](https://github.com/hackninety/common-ts-lib/tree/main/packages/zslj-ts-lib) | 大六壬（第三引擎） | 安倍晴明《占事略決》古法（983 年）：涉害孟仲季、旦暮贵人寅酉界、課用九法、卅六卦课体，附原文锚点与「依经断课」AI 提示词 |
+| [lrdq-ts-lib](https://github.com/hackninety/common-ts-lib/tree/main/packages/lrdq-ts-lib) | 毕法命中插件 + 典籍 | 《六壬大全》全书典籍（四庫全書本十三篇，`lrdq-ts-lib/docs` 子入口随典籍抽屉懒加载）；《畢法賦》百法语料，97/100 法机器命中（exact/approx 分级；第93/97/98法为校勘/方法论不设机判） |
 | [xiaoliuren-ts-lib](https://www.npmjs.com/package/xiaoliuren-ts-lib) | 小六壬 | 马前课 |
 | 本地移植 `src/engines/jinkoujue/` | 金口诀 | 《大六壬金口诀》通行起课法 |
 
@@ -89,4 +89,4 @@ npm run build
 ## 📄 许可协议
 
 本应用代码 MIT。金口诀模块移植自 [look-fate/liuren-ts-lib](https://github.com/look-fate/liuren-ts-lib) v1.9（Apache-2.0），出处见源码头注释。
-依赖的典籍语料库 [lrdq-ts-lib](https://github.com/hackninety/lrdq-ts-lib) 自 v0.8.0 起为 **CC BY-NC 4.0（禁止商用）**——古籍原文公有领域，在版权期今注（如《六壬指南注解》張洪注）署名收录、权利人异议即撤。
+依赖的典籍语料库 [lrdq-ts-lib](https://github.com/hackninety/common-ts-lib/tree/main/packages/lrdq-ts-lib) 自 v0.8.0 起为 **CC BY-NC 4.0（禁止商用）**——古籍原文公有领域，在版权期今注（如《六壬指南注解》張洪注）署名收录、权利人异议即撤。

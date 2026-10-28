@@ -7,7 +7,7 @@ Claude Code 在本仓库工作时遵循以下约定。
 - **对话语言**：始终用中文交流。
 - **Commit 信息**：用中文书写，沿用现有历史风格（`功能：…` / `修复：…` / `维护：…`）。
 - **存档式推送**：每完成一项处理，自动 `git commit` 并推送到主分支 `main`（类似存档，无需询问）。
-- **姊妹库联动**：本项目引用同一 GitHub 账号（hackninety）下的 `*-ts-lib` 库——`lrdq-ts-lib`、`zslj-ts-lib`（GitHub 依赖，`#semver:*` 跟踪 tag）及 `liuren-ts-lib`、`xiaoliuren-ts-lib`（npm）。任务涉及库侧改动时，可同步修改对应库仓库并推送；GitHub 依赖改完需发新 tag 并更新本仓库 lock。
+- **姊妹库联动**：`lrdq-ts-lib`、`zslj-ts-lib` 统一维护于同一 GitHub 账号（hackninety）的 `common-ts-lib/packages/<包名>`，保留独立包名和接口；本项目通过版本固定的 GitHub Release `.tgz` 安装。`liuren-ts-lib`、`xiaoliuren-ts-lib` 仍使用 npm。任务涉及库侧改动时，可同步修改对应包源码并推送；`common-ts-lib` 的包更新后需发布对应 `<包名>-v<版本>` Release 及预构建压缩包，并更新本仓库 `package.json` 和 lock。
 
 ## 项目速览
 

@@ -16,7 +16,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.36.0",
     "liuren-ts-lib": "^3.0.0",
-    "lrdq-ts-lib": "github:hackninety/lrdq-ts-lib#semver:*",
+    "lrdq-ts-lib": "https://github.com/hackninety/common-ts-lib/releases/download/lrdq-ts-lib-v0.11.0/lrdq-ts-lib-0.11.0.tgz",
     "lucide-react": "^0.577.0",
     "lunar-javascript": "^1.2.26",
     "mingyu-core": "^0.1.8",
@@ -27,7 +27,7 @@
     "tailwind-merge": "^3.5.0",
     "tyme4ts": "^1.3.4",
     "xiaoliuren-ts-lib": "^1.0.0",
-    "zslj-ts-lib": "github:hackninety/zslj-ts-lib#semver:*"
+    "zslj-ts-lib": "https://github.com/hackninety/common-ts-lib/releases/download/zslj-ts-lib-v0.1.0/zslj-ts-lib-0.1.0.tgz"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.1",
