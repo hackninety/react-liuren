@@ -5,6 +5,8 @@ import { cn } from '@/utils/cn';
 import { chartToMarkdown } from '@/utils/chart-markdown';
 import { chartToToon } from '@/utils/toon';
 import { ZHANSHI_TOPICS, sliceDocSection, zhanShiCaseChapters } from '@/utils/zhanshi-topics';
+import { useMingliMode } from '../hooks/useMingliMode';
+import { MingliModePanel } from './MingliModePanel';
 
 interface JsonExportPanelProps {
   data: unknown;
@@ -70,6 +72,7 @@ function liuRenNames(d: unknown): string[] {
  * （課經/心鏡课体原文引，lrdq-ts-lib/keju 惰性拉取），MD/JSON/AI Prompt 均携带。
  */
 export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: JsonExportPanelProps) {
+  const mingliMode = useMingliMode(data);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [format, setFormat] = useState<'md' | 'toon'>('md');
   const [kejing, setKejing] = useState<{ src: unknown; entries: KeJingLike[] } | null>(null);
@@ -156,12 +159,14 @@ export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: J
     setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 2000);
   };
 
-  const copy = async (text: string, key: string) => {
+  const copy = async (value: string | (() => string), key: string) => {
+    const currentText = () => typeof value === 'function' ? value() : value;
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(currentText());
     } catch {
       const ta = document.createElement('textarea');
-      ta.value = text;
+      // 剪贴板权限等待期间可能关闭模式，回退复制前再次读取当前门控。
+      ta.value = currentText();
       document.body.appendChild(ta);
       ta.select();
       document.execCommand('copy');
@@ -190,6 +195,8 @@ export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: J
   };
 
   const handleCopyPrompt = async () => {
+    // 在异步典籍读取前记录会话，完成时仍须检查开关和盘面是否有效。
+    const modeTicket = mingliMode.gate.getSnapshot();
     const topic = ZHANSHI_TOPICS.find((t) => t.id === topicId) ?? ZHANSHI_TOPICS[0];
     // 占事定向：按索引切片典籍断法章节附文（lrdq-ts-lib/docs 惰性拉取，失败不阻断）
     let refText = '';
@@ -237,7 +244,7 @@ export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: J
     // 引擎自带 AI 提示词优先（如占事略決古法「依经断课」），前缀占事、后附章节与占例
     const engineAiPrompt = (data as { extras?: { aiPrompt?: unknown } })?.extras?.aiPrompt;
     if (typeof engineAiPrompt === 'string' && engineAiPrompt) {
-      copy(`${topicLine ? `${topicLine}\n\n` : ''}${engineAiPrompt}${refBlock}${caseBlock}`, 'prompt');
+      copy(() => mingliMode.gate.appendReference(`${topicLine ? `${topicLine}\n\n` : ''}${engineAiPrompt}${refBlock}${caseBlock}`, modeTicket), 'prompt');
       return;
     }
     const meta = (data as { meta?: { school?: string; engineName?: string } })?.meta;
@@ -254,7 +261,7 @@ export function JsonExportPanel({ data, title = '排盘数据', delay = 0.3 }: J
 
 【盘面】
 ${mdStr}${refBlock}${caseBlock}`;
-    copy(prompt, 'prompt');
+    copy(() => mingliMode.gate.appendReference(prompt, modeTicket), 'prompt');
   };
 
   const previewText = format === 'md' ? mdStr : toonStr;
@@ -299,6 +306,7 @@ ${mdStr}${refBlock}${caseBlock}`;
       </div>
 
       <div className="space-y-3">
+        <MingliModePanel {...mingliMode} />
         {/* 占事定向（大六壬盘限定；影响 AI Prompt 的焦点与附文章节） */}
         {liuRenNames(data).length > 0 && (
           <div className="flex flex-wrap items-center gap-2 text-xs">
