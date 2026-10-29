@@ -2,6 +2,38 @@
 
 现代化的大六壬排盘 Web 应用：**大六壬 · 金口诀 · 小六壬 · 流年**，多引擎流派切换 + 插件式扩展架构。
 
+## 在 AI 中使用统一 MCP
+
+支持 MCP 的 AI 客户端可直接连接 **[https://mcp.0x7c.cc/mcp](https://mcp.0x7c.cc/mcp)**，传输方式选 **Streamable HTTP**，认证选**无**，无需访问令牌。MCP 负责排盘和检索 common 资料，解读由当前 AI 完成；远程调用会把填写的时间等参数发送到该服务。
+
+安装对应 CLI 后，在终端执行其中一条：
+
+```bash
+# Codex
+codex mcp add paipan-common-remote --url https://mcp.0x7c.cc/mcp
+
+# Claude Code（当前用户范围）
+claude mcp add --transport http --scope user paipan-common-remote https://mcp.0x7c.cc/mcp
+```
+
+配置后重新打开客户端会话。已有本机 `paipan-common` 配置时，本机与远程选择一个即可，无需重复添加。命令说明见 [Codex MCP 文档](https://learn.chatgpt.com/docs/extend/mcp)和 [Claude Code MCP 文档](https://code.claude.com/docs/en/mcp)。
+
+连接后可复制以下示例给 AI（请替换成实际起课资料）：
+
+> 请先调用 system_catalog 核对参数，再用 prepare_reading 排大六壬（systems=["liuren"]）。起课时间 eventTime 为公历 2026-10-29 14:30，timezone="+08:00"，不启用真太阳时；使用 lookfate 引擎，研究主题为求财，不开启算命模式。检索 common 中的六壬典籍，再用 corpus_read 读取相关原文，标注书名、资料 ID 和来源，区分盘面字段、原典说法与推测。缺少必要参数时先问我。
+
+统一 MCP 当前覆盖：
+
+| 系统 | 必要输入 | 已开放能力 |
+|---|---|---|
+| `liuren` 大六壬 | `eventTime` | `lookfate` / `zslj` 两个引擎；common 检索《六壬大全》与《占事略決》 |
+| `jinkoujue` 金口诀 | `eventTime`、`options.diFen` | 地分必须是「子」至「亥」的地支汉字；当前无对应 common 典籍 |
+| `xiaoliuren` 小六壬 | `eventTime` | 时间法，或 `method="number"` + 正整数 `number`；数字法也需起课时间，当前无对应 common 典籍 |
+
+普通占事只填写起课时间，不需要无关的生日或性别。大六壬若要附本命、行年标记，可另提供出生年与性别；网页的第三引擎、流年页面及扩展插件尚未全部开放为统一 MCP 选项。`chart_calculate` 的选项直接放 `options`；`prepare_reading` 按系统分组，例如 `options={"liuren":{"engine":"zslj"}}`。
+
+所有时间均需明确公历日期、时分和时区（IANA 名或固定偏移，二者在夏令时日期可能不同）。启用真太阳时须明确提供 `eventTime.longitude`，不能由 AI 猜测。要联查人生主题命例，必须明确设置 `fortuneMode=true` 并另提供完整 `birth`；生日不能替代 `eventTime`。默认 `practice` 不读取案例答案；只有明确要求参考答案时，才使用 `corpus_read` 的 `mode="reference"` 与 `includeAnswers=true`。
+
 ## ✨ 功能特性
 
 - 🎯 **大六壬排盘** — 4×4 天地盘方盘布局 · 四课 · 三传 · 遁干 · 建除 · 神煞 · 阴阳贵人
@@ -17,7 +49,9 @@
 
 ## 命例参考
 
-在数据导出面板手动开启「算命模式」，再展开「命例库」，可检索人生主题案例。选中「用于 AI 参考」后，复制的 AI Prompt 会在末尾附上独立命例及来源；纯盘面 MD / TOON 不附加命例。
+在数据导出面板手动开启「算命模式」，再展开「命例库」，可检索人生主题案例。当前使用 `mingli-cases-ts-lib` / `mingli-cases-react` 独立 Release `0.1.1`。点击「用于 AI 参考（不含答案）」会附入独立命例及来源；如需答案，先揭晓，再明确点击「用于 AI 参考（含已揭晓答案）」。隐藏答案会撤销含答案的引用。两种引用均只追加到 AI Prompt，纯盘面 MD / TOON 不附加命例。
+
+案例显示出生资料注记、钟点精度与来源；「钟点未核实」和「区间中点」不能视为已证实的精确出生时刻，也不能直接替当前求测人填表。
 
 开关默认关闭，不记忆开启状态。普通占事不加载命例界面或数据；关闭模式、换盘会清除引用。原有六壬占事典籍与占例仍按原规则使用。命例属于其他命主，不能当作当前求测人的经历；起课时间也不会转作出生时间。
 
@@ -33,7 +67,7 @@
 | [TailwindCSS](https://tailwindcss.com/) | v4 | 样式系统 |
 | [Framer Motion](https://motion.dev/) | v12 | 动画 |
 
-**算法引擎**（全部来自 npm，可独立升级）：
+**算法引擎与典籍依赖**（npm 包与 common-ts-lib 的独立 Release 分别锁定）：
 
 | 引擎 | 用途 | 流派 |
 |------|------|------|
@@ -43,6 +77,8 @@
 | [lrdq-ts-lib](https://github.com/hackninety/common-ts-lib/tree/main/packages/lrdq-ts-lib) | 毕法命中插件 + 典籍 | 《六壬大全》全书典籍（四庫全書本十三篇，`lrdq-ts-lib/docs` 子入口随典籍抽屉懒加载）；《畢法賦》百法语料，97/100 法机器命中（exact/approx 分级；第93/97/98法为校勘/方法论不设机判） |
 | [xiaoliuren-ts-lib](https://www.npmjs.com/package/xiaoliuren-ts-lib) | 小六壬 | 马前课 |
 | 本地移植 `src/engines/jinkoujue/` | 金口诀 | 《大六壬金口诀》通行起课法 |
+
+`lrdq-ts-lib` 当前锁定 `0.11.0`，`zslj-ts-lib` 锁定 `0.1.1`；两者源码统一维护于 [common-ts-lib](https://github.com/hackninety/common-ts-lib)，保留独立包名和接口。升级时先发布对应包的 `<包名>-v<版本>` Release，再同步本项目的 `package.json` 与锁文件；生产安装使用固定 `.tgz` 地址。
 
 > 古法与通行体系的三传在涉害、伏吟、返吟等局面**本应存在分歧**（古今取传规则不同），三传对照条会标注「流派差异」，这正是多流派互证的价值。
 >
