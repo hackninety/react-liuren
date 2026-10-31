@@ -28,15 +28,16 @@ claude mcp add --transport http --scope user paipan-common https://mcp.0x7c.cc/m
 
 > 请先调用 system_catalog 核对参数，再用 prepare_reading 排大六壬（systems=["liuren"]）。起课时间 eventTime 为公历 2026-10-29 14:30，timezone="+08:00"，不启用真太阳时；使用 lookfate 引擎，研究主题为求财，不开启算命模式。检索 common 中的六壬典籍，再用 corpus_read 读取相关原文，标注书名、资料 ID 和来源，区分盘面字段、原典说法与推测。缺少必要参数时先问我。
 
-统一 MCP 当前覆盖：
+统一 MCP 0.3.x 起以 `system="liuren"` 一个入口加 `options.variant` 选择子类（旧的 `jinkoujue` / `xiaoliuren` 系统名仍可作为兼容别名）：
 
-| 系统 | 必要输入 | 已开放能力 |
+| `options.variant` | 必要输入 | 已开放能力 |
 |---|---|---|
-| `liuren` 大六壬 | `eventTime` | `lookfate` / `zslj` 两个引擎；common 检索《六壬大全》与《占事略決》 |
+| `daliuren` 大六壬（默认） | `eventTime` | `lookfate` 引擎；common 检索《六壬大全》 |
+| `zslj` 占事略決 | `eventTime` | `zslj` 大六壬算法；common 检索《占事略決》 |
 | `jinkoujue` 金口诀 | `eventTime`、`options.diFen` | 地分必须是「子」至「亥」的地支汉字；当前无对应 common 典籍 |
 | `xiaoliuren` 小六壬 | `eventTime` | 时间法，或 `method="number"` + 正整数 `number`；数字法也需起课时间，当前无对应 common 典籍 |
 
-普通占事只填写起课时间，不需要无关的生日或性别。大六壬若要附本命、行年标记，可另提供出生年与性别；网页的第三引擎、流年页面及扩展插件尚未全部开放为统一 MCP 选项。`chart_calculate` 的选项直接放 `options`；`prepare_reading` 按系统分组，例如 `options={"liuren":{"engine":"zslj"}}`。
+引擎由 `variant` 决定，不要再同时传 `engine`（`variant=daliuren` 配 `engine=zslj` 会被拒绝）；未传 `variant` 时沿用旧调用：`engine=zslj` 选占事略決，否则为大六壬。普通占事只填写起课时间，不需要无关的生日或性别。大六壬若要附本命、行年标记，可另提供出生年与性别；网页的流年页面及扩展插件尚未全部开放为统一 MCP 选项。`chart_calculate` 的选项直接放 `options`；`prepare_reading` 按系统分组，例如 `options={"liuren":{"variant":"zslj"}}`。
 
 所有时间均需明确公历日期、时分和时区（IANA 名或固定偏移，二者在夏令时日期可能不同）。启用真太阳时须明确提供 `eventTime.longitude`，不能由 AI 猜测。要联查人生主题命例，必须明确设置 `fortuneMode=true` 并另提供完整 `birth`；生日不能替代 `eventTime`。默认 `practice` 不读取案例答案；只有明确要求参考答案时，才使用 `corpus_read` 的 `mode="reference"` 与 `includeAnswers=true`。
 
